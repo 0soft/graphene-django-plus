@@ -1,0 +1,27 @@
+language: python
+python:
+  - "3.7"
+  - "3.6"
+  - "3.5"
+env:
+  - DJANGO_VERSION=">=2.2.0,<2.3"
+  - DJANGO_VERSION=">=2.1.0,<2.2"
+  - DJANGO_VERSION=">=2.0.0,<2.1"
+  - DJANGO_VERSION=">=1.11.0,<2.0.0"
+install:
+  - pip install -r dev-requirements.txt
+  - pip install "django$DJANGO_VERSION"
+  - pip install codecov
+script:
+  - ./setup.py test
+after_success:
+  - codecov
+jobs:
+  include:
+    - stage: lint
+      install: true
+      script:
+        - flake8
+stages:
+  - test
+  - lint
