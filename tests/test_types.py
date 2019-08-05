@@ -2,14 +2,7 @@ import base64
 import json
 from unittest import mock
 
-from guardian.shortcuts import assign_perm
-
 from .base import BaseTestCase
-from .models import (
-    Project,
-    Milestone,
-    Issue,
-)
 
 
 class TestTypes(BaseTestCase):

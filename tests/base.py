@@ -41,8 +41,7 @@ class BaseTestCase(GraphQLTestCase):
                 (1, self.milestone_1),
                 (1, self.milestone_1),
                 (0, self.milestone_2),
-                (3, None),
-                ]):
+                (3, None)]):
             i = Issue.objects.create(
                 name="Issue {}".format(i + 1),
                 priority=priority,

@@ -1,4 +1,3 @@
-from django.db import models
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
