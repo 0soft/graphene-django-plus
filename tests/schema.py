@@ -19,28 +19,31 @@ from .models import (
 # Types
 
 
-class IssueType(ModelType, interfaces=[relay.Node]):
+class IssueType(ModelType):
     class Meta:
         model = Issue
         connection_class = CountableConnection
+        interfaces = [relay.Node]
         object_permissions = [
             'can_read',
         ]
 
 
-class MilestoneType(ModelType, interfaces=[relay.Node]):
+class MilestoneType(ModelType):
     class Meta:
         model = Milestone
         connection_class = CountableConnection
+        interfaces = [relay.Node]
         prefetch = {
             'issues': IssueType,
         }
 
 
-class ProjectType(ModelType, interfaces=[relay.Node]):
+class ProjectType(ModelType):
     class Meta:
         model = Project
         connection_class = CountableConnection
+        interfaces = [relay.Node]
         prefetch = {
             'milestones': MilestoneType,
         }
