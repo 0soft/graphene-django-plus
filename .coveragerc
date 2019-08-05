@@ -1,0 +1,5 @@
+[run]
+source=graphene_django_plus
+
+[report]
+precision = 2
