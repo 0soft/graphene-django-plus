@@ -19,7 +19,8 @@ after_success:
 jobs:
   include:
     - stage: lint
-      install: true
+      install:
+        - pip install flake8==3.7.8
       script:
         - flake8
 stages:
