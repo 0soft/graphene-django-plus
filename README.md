@@ -1,6 +1,7 @@
 # graphene-django-plus #
 
 [![build status](https://img.shields.io/travis/0soft/graphene-django-plus.svg)](https://travis-ci.org/0soft/graphene-django-plus)
+[![docs status](https://img.shields.io/readthedocs/graphene-django-plus.svg)](https://graphene-django-plus.readthedocs.io)
 [![coverage](https://img.shields.io/codecov/c/github/0soft/graphene-django-plus.svg)](https://codecov.io/gh/0soft/graphene-django-plus)
 [![PyPI version](https://img.shields.io/pypi/v/graphene-django-plus.svg)](https://pypi.org/project/graphene-django-plus/)
 ![python version](https://img.shields.io/pypi/pyversions/graphene-django-plus.svg)
@@ -23,6 +24,9 @@ pip install graphene-django-optimizer django-guardian
 ```
 
 ## What is included
+
+Check the [docs](https://graphene-django-plus.readthedocs.io`) for a complete
+api documentation.
 
 ### Models
 
