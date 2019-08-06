@@ -42,7 +42,7 @@ pip install graphene-django-optimizer django-guardian
 
 ## What is included
 
-Check the [docs](https://graphene-django-plus.readthedocs.io`) for a complete
+Check the [docs](https://graphene-django-plus.readthedocs.io) for a complete
 api documentation.
 
 ### Models
