@@ -23,6 +23,23 @@ and [django-guardian](https://github.com/django-guardian/django-guardian).
 pip install graphene-django-optimizer django-guardian
 ```
 
+## What it does
+
+* Provides some base types for Django Models to improve querying them with:
+    * Unauthenticated user handling
+    * Automatic optimization using [graph-django-optimizer](https://github.com/tfoxy/graphene-django-optimizer)
+    * Permission handling for queries using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
+    * Object permission handling for queries using [django guardian](https://github.com/django-guardian/django-guardian)
+    * Relay id conversion so querying can use the global id instead of the model's id
+* Provides a set of complete and simple CRUD mutations with:
+    * Unauthenticated user handling
+    * Permission handling using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
+    * Object permission handling using [django guardian](https://github.com/django-guardian/django-guardian)
+    * Automatic input generation based on the model (no need to write your own input type or use `django forms` and `drf serializers`)
+    * Automatic model validation based on the model's validators
+* Very simple to create some quick CRUD endpoints for your models
+* Easy to extend and override functionalities
+
 ## What is included
 
 Check the [docs](https://graphene-django-plus.readthedocs.io`) for a complete
@@ -274,3 +291,13 @@ mutation {
 ```
 
 Any validation errors will be presented in the `errors` return value.
+
+## License
+
+This project is licensed under MIT licence (see `LICENSE` for more info)
+
+## Contributing
+
+Feel free to fork the project and send me pull requests with new features,
+corrections and translations. We'll gladly merge them and release new versions
+ASAP.
