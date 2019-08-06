@@ -15,8 +15,8 @@ def _read(fname):
 setup(
     name='graphene-django-plus',
     version='0.1.0',
-    author='Thiago Bellini Ribeiro',
-    author_email='bellini@zerosoft.com.br',
+    author='Zerosoft Tecnologia LTDA',
+    author_email='admin@zerosoft.com.br',
     description='Tools to easily create permissioned CRUD endpoints in graphene.',
     license='MIT',
     keywords=' '.join([
@@ -37,7 +37,7 @@ setup(
     long_description=_read('README.md'),
     long_description_content_type='text/markdown',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
