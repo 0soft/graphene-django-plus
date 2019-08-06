@@ -22,7 +22,7 @@ and [django-guardian](https://github.com/django-guardian/django-guardian).
 pip install graphene-django-optimizer django-guardian
 ```
 
-## What is provided
+## What is included
 
 ### Models
 
