@@ -1,4 +1,4 @@
-# graphene-django-extras #
+# graphene-django-plus #
 
 [![build status](https://img.shields.io/travis/0soft/graphene-django-plus.svg)](https://travis-ci.org/0soft/graphene-django-plus)
 [![coverage](https://img.shields.io/codecov/c/github/0soft/graphene-django-plus.svg)](https://codecov.io/gh/0soft/graphene-django-plus)
