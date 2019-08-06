@@ -8,6 +8,7 @@ class CountableConnection(relay.Connection):
     class Meta:
         abstract = True
 
+    #: Total objects count in the query.
     total_count = graphene.Int(
         description="The total count of objects in this query.",
     )

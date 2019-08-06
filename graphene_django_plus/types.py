@@ -19,11 +19,15 @@ from .exceptions import PermissionDenied
 class MutationErrorType(graphene.ObjectType):
     """An error that happened in a mutation."""
 
+    #: The field that caused the error, or `null` if it isn't associated
+    #: with any particular field.
     field = graphene.String(
         description=("The field that caused the error, or `null` if it "
-                     "isn't associated with any a particular field."),
+                     "isn't associated with any particular field."),
         required=False,
     )
+
+    #: The error message
     message = graphene.String(description="The error message.")
 
 
@@ -51,12 +55,27 @@ class UploadType(graphene.types.Scalar):
 
 
 class ModelTypeOptions(DjangoObjectTypeOptions):
-    """Model type options for :ModelType:."""
+    """Model type options for :class:`ModelType`."""
 
+    #: If we shuld allow unauthenticated users to query for this model.
     allow_unauthenticated = False
+
+    #: A list of django permissions to check if the user has permission to
+    #: query this model.
     permissions = None
+
+    #: A list of guardian object permissions to check if the user has
+    #: permission to query the model object.
     object_permissions = None
+
+    #: If any object permission should allow the user to query this model.
     object_permissions_any = True
+
+    #: A dict defining fields to be prefetched. This should map the
+    #: related name to the type. e.g. `{'items': ItemType}`.
+    #: Note that for this to work, `graphene_django_optimizer` needs
+    #: to be installed
+    prefetch = None
 
 
 class ModelType(_BaseDjangoObjectType):
@@ -71,6 +90,7 @@ class ModelType(_BaseDjangoObjectType):
                                     object_permissions=None,
                                     object_permissions_any=True,
                                     allow_unauthenticated=False,
+                                    prefetch=None,
                                     **kwargs):
         if not _meta:
             _meta = DjangoObjectTypeOptions(cls)
@@ -82,7 +102,7 @@ class ModelType(_BaseDjangoObjectType):
 
         # Automatic prefetch optimization
         if gql_optimizer is not None:
-            prefetch = kwargs.pop('prefetch', {}) or {}
+            prefetch = prefetch or {}
             for k, v in prefetch.items():
                 if isinstance(v, types.FunctionType):
                     v = v()
@@ -98,6 +118,14 @@ class ModelType(_BaseDjangoObjectType):
 
     @classmethod
     def get_queryset(cls, qs, info):
+        """Get the queryset checking for permissions and optimizing the query.
+
+        Override the default graphene's `get_queryset` to check for permissions
+        and optimize the query performance.
+
+        Note that the query will only be automaticallu optimized if,
+        `graphene_django_optimizer` is installed.
+        """
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
@@ -119,6 +147,7 @@ class ModelType(_BaseDjangoObjectType):
 
     @classmethod
     def get_node(cls, info, id):
+        """Get the node instance given the relay global id."""
         instance = super().get_node(info, id)
 
         if not cls.check_object_permissions(info.context.user, instance):
@@ -128,6 +157,11 @@ class ModelType(_BaseDjangoObjectType):
 
     @classmethod
     def check_permissions(cls, user):
+        """Check permissions for the given user.
+
+        Subclasses can override this to avoid the permission checking or
+        extending it. Remember to call `super()` in the later case.
+        """
         if not cls._meta.allow_unauthenticated and not user.is_authenticated:
             return False
 
@@ -138,6 +172,15 @@ class ModelType(_BaseDjangoObjectType):
 
     @classmethod
     def check_object_permissions(cls, user, instance):
+        """Check object permissions for the given user.
+
+        Subclasses can override this to avoid the permission checking or
+        extending it. Remember to call `super()` in the later case.
+
+        For this to work, the model needs to implement a `has_perm` method.
+        The easiest way when using `guardian` is to inherit it
+        from :class:`graphene_django_plus.models.GuardedModel`.
+        """
         if not hasattr(instance, 'has_perm'):
             return True
 

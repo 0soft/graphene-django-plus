@@ -124,9 +124,12 @@ def _is_upload_field(field):
 
 
 class BaseMutationOptions(MutationOptions):
-    """Model type options for :BaseMutation: and subclasses."""
+    """Model type options for :class:`BaseMutation` and subclasses."""
 
+    #: A list of Django permissions to check against the user
     permissions = None
+
+    #: If we should allow unauthenticated users to do this mutation
     allow_unauthenticated = False
 
 
@@ -136,6 +139,7 @@ class BaseMutation(ClientIDMutation):
     class Meta:
         abstract = True
 
+    #: A list of errors that happened during the mutation
     errors = graphene.List(
         graphene.NonNull(MutationErrorType),
         description="List of errors that occurred while executing the mutation.",
@@ -155,6 +159,7 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def get_node(cls, info, node_id, field='id', only_type=None):
+        """Get the node object given a relay global id."""
         if not node_id:
             return None
 
@@ -176,6 +181,7 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def get_nodes(cls, ids, field, only_type=None):
+        """Get a list of node objects given a list of relay global ids."""
         try:
             instances = get_nodes(ids, only_type)
         except GraphQLError as e:
@@ -185,6 +191,11 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def check_permissions(cls, user):
+        """Check permissions for the given user.
+
+        Subclasses can override this to avoid the permission checking or
+        extending it. Remember to call `super()` in the later case.
+        """
         if not cls._meta.allow_unauthenticated and not user.is_authenticated:
             return False
 
@@ -195,6 +206,14 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **data):
+        """Mutate checking permissions.
+
+        We override the default graphene's method to call
+        :meth:`.check_permissions` and populate :attr:`.errors` in case
+        of errors automatically.
+
+        The mutation itself should be defined in :meth:`.perform_mutation`.
+        """
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
@@ -209,18 +228,38 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        pass
+        """Perform the mutation.
+
+        This should be implemented in subclasses to perform the mutation.
+        """
+        raise NotImplementedError
 
 
 class ModelMutationOptions(BaseMutationOptions):
-    """Model type options for :BaseModelMutation: and subclasses."""
+    """Model type options for :class:`BaseModelMutation` and subclasses."""
 
-    object_permissions = None
-    object_permissions_any = True
-    exclude_fields = None
-    only_fields = None
-    required_fields = None
+    #: The Django model.
     model = None
+
+    #: A list of guardian object permissions to check if the user has
+    #: permission to perform a mutation to the model object.
+    object_permissions = None
+
+    #: If any object permission should allow the user to perform the mutation.
+    object_permissions_any = True
+
+    #: Exclude the given fields from the mutation input.
+    exclude_fields = None
+
+    #: Include only those fields in the mutation input.
+    only_fields = None
+
+    #: Mark those fields as required (note that fields marked with `null=False`
+    #: in Django will already be considered required).
+    required_fields = None
+
+    #: The name of the field that will contain the object type. If not
+    #: provided, it will default to the model's name.
     return_field_name = None
 
 
@@ -229,6 +268,8 @@ class BaseModelMutation(BaseMutation):
 
     This will allow mutations for both create and update operations,
     depending on if the object's id is present in the input or not.
+
+    See :class:`ModelMutationOptions` for a list of meta configurations.
     """
 
     class Meta:
@@ -276,6 +317,15 @@ class BaseModelMutation(BaseMutation):
 
     @classmethod
     def check_object_permissions(cls, user, instance):
+        """Check object permissions for the given user.
+
+        Subclasses can override this to avoid the permission checking or
+        extending it. Remember to call `super()` in the later case.
+
+        For this to work, the model needs to implement a `has_perm` method.
+        The easiest way when using `guardian` is to inherit it
+        from :class:`graphene_django_plus.models.GuardedModel`.
+        """
         if not hasattr(instance, 'has_perm'):
             return True
 
@@ -287,6 +337,7 @@ class BaseModelMutation(BaseMutation):
 
     @classmethod
     def get_instance(cls, info, obj_id):
+        """Get an object given a relay global id."""
         model_type = _registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node(info, obj_id, only_type=model_type)
         if not cls.check_object_permissions(info.context.user, instance):
@@ -295,28 +346,57 @@ class BaseModelMutation(BaseMutation):
 
     @classmethod
     def before_save(cls, info, instance, cleaned_input=None):
+        """Perform "before save" operations.
+
+        Override this to perform any operation on the instance
+        before its `.save()` method is called.
+        """
         pass
 
     @classmethod
     def after_save(cls, info, instance, cleaned_input=None):
-        pass
+        """Perform "after save" operations.
+
+        Override this to perform any operation on the instance
+        after its `.save()` method is called.
+        """
 
     @classmethod
     def save(cls, info, instance, cleaned_input=None):
+        """Save the instance to the database.
+
+        To do something with the instance "before" or "after" saving it,
+        override either :meth:`.before_save` and/or :meth:`.after_save`.
+        """
         cls.before_save(info, instance, cleaned_input=cleaned_input)
         instance.save()
         cls.after_save(info, instance, cleaned_input=cleaned_input)
 
     @classmethod
     def before_delete(cls, info, instance):
+        """Perform "before delete" operations.
+
+        Override this to perform any operation on the instance
+        before its `.delete()` method is called.
+        """
         pass
 
     @classmethod
     def after_delete(cls, info, instance):
+        """Perform "after delete" operations.
+
+        Override this to perform any operation on the instance
+        after its `.delete()` method is called.
+        """
         pass
 
     @classmethod
     def delete(cls, info, instance):
+        """Delete the instance from the database.
+
+        To do something with the instance "before" or "after" deleting it,
+        override either :meth:`.before_delete` and/or :meth:`.after_delete`.
+        """
         cls.before_delete(info, instance)
         instance.delete()
         cls.after_delete(info, instance)
@@ -325,7 +405,7 @@ class BaseModelMutation(BaseMutation):
 class BaseModelOperationMutation(BaseModelMutation):
     """Base mutation for operations on models.
 
-    Just like a regular BaseModelMutation, but this will receive only
+    Just like a regular :class:`BaseModelMutation`, but this will receive only
     the object's id so an operation can happen to it.
     """
 
@@ -353,6 +433,7 @@ class ModelMutation(BaseModelMutation):
 
     @classmethod
     def create_instance(cls, instance, cleaned_data):
+        """Create a model instance given the already cleaned input data."""
         opts = instance._meta
 
         for f in opts.fields:
@@ -378,6 +459,7 @@ class ModelMutation(BaseModelMutation):
 
     @classmethod
     def clean_instance(cls, instance, clean_input):
+        """Validate the instance by calling its `.full_clean()` method."""
         try:
             instance.full_clean()
         except ValidationError as e:
@@ -388,6 +470,7 @@ class ModelMutation(BaseModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        """Clear and normalize the input data."""
         cleaned_input = {}
 
         for f_name, f_item in cls.Input._meta.fields.items():
@@ -417,6 +500,11 @@ class ModelMutation(BaseModelMutation):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        """Perform the mutation.
+
+        Create or update the instance, based on the existence of the
+        `id` attribute in the input data and save it.
+        """
         obj_id = data.get('id')
         if obj_id:
             instance = cls.get_instance(info, obj_id)
@@ -444,7 +532,7 @@ class ModelMutation(BaseModelMutation):
 class ModelCreateMutation(ModelMutation):
     """Create mutation for models.
 
-    A shortcut for defining a :ModelMutation: that already excludes
+    A shortcut for defining a :class:`ModelMutation` that already excludes
     the `id` from being required.
     """
 
@@ -465,7 +553,7 @@ class ModelCreateMutation(ModelMutation):
 class ModelUpdateMutation(ModelMutation):
     """Update mutation for models.
 
-    A shortcut for defining a :ModelMutation: that already enforces
+    A shortcut for defining a :class:`ModelMutation` that already enforces
     the `id` to be required.
     """
 
@@ -492,6 +580,11 @@ class ModelDeleteMutation(BaseModelOperationMutation):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        """Perform the mutation.
+
+        Delete the instance from the database given its `id` attribute
+        in the input data.
+        """
         instance = cls.get_instance(info, data.get('id'))
 
         db_id = instance.id
