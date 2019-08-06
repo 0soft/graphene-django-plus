@@ -1,8 +1,8 @@
 dist: xenial
 language: python
 python:
-  - "3.7"
-  - "3.6"
+  - '3.7'
+  - '3.6'
 env:
   - DJANGO_VERSION=">=2.2.0,<2.3"
   - DJANGO_VERSION=">=2.1.0,<2.2"
@@ -13,16 +13,28 @@ install:
   - pip install "django$DJANGO_VERSION"
   - pip install codecov
 script:
-  - ./setup.py test
+  - "./setup.py test"
 after_success:
   - codecov
 jobs:
   include:
-    - stage: lint
-      install:
-        - pip install flake8==3.7.8
-      script:
-        - flake8
+  - stage: lint
+    install:
+    - pip install flake8==3.7.8
+    script:
+    - flake8
+  - stage: deploy
+    if: tag IS present
+    install: true
+    script: skip
+    deploy:
+      provider: pypi
+      user: hackedbellini
+      password:
+        secure: eVHayKp2Sn4SyMTHvNpIBFb5u+hULgxu00UOfhCsZqIHwRY2+4DDbMyiQSjrPdF1WakGSBHpFjfn86Mg69U2pUEmk8UdJaZlrgIqIBD96YhI5r/u8wlmPaSaT9ufKcH+9Ei23XZKFIrQw8cod0GsBc56HHhw6Xdd9l26LN2067Dgh36Ds0NvJEEn5QoE8PQMFT1gTv3FVRoXuXqMVmvmusyJ+JoB6H1qyvvcw4PDH2n+V/WZxO2Yi9WLxZmmchpVD1PpPS8UHmKEiRf5p2to+/INNUyEDOIkPj78/QMz+ISw/l4ix0wuYl3oBRtOqVp9H32McXCMYESLxv9K5YJP6ct2HwbOwb0Omzokwiae+gdRmkcD6/uNMr8Jqp6BpJLYnz1ayHbwSm7Ozx1r05cd4Alg12aJ1YTYrKp8jrMyA16gV5f4bzQ1It/wVQquzQmzcC8I7WFmKffWoGdreii5bE1j2qopJ0hUaa3uehH94U3fJJnpn9uldIitnqyVVvymzX6RkzTjBNN2U4ogjlS1Adp6D1CTCkFvctyFDPthWxFGkGeM/LPyn6cLPHoxOxshJh2c06eLzp0Ld97XsmHNDDLb436rRjvGxXi4a2gAS5PSbtUKFmDTPnGLy9LghoL7GvF+3hY17iIEzZ38+f+IT1vpeg8FFr78tVBwowJidbE=
+      on:
+        tags: true
 stages:
   - test
   - lint
+  - deploy
