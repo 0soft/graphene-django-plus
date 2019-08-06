@@ -11,31 +11,31 @@ Welcome to graphene-django-plus's documentation!
    :caption: Contents:
 
 
-Graphene Django Plus main
-=========================
+API
+===
 .. automodule:: graphene_django_plus
    :members:
 
 
-Graphene Django Plus types
-==========================
+Types
+=====
 .. automodule:: graphene_django_plus.types
    :members:
 
 
-Graphene Django Plus fields
-===========================
+Fields
+======
 .. automodule:: graphene_django_plus.fields
    :members:
 
 
-Graphene Django Plus mutations
-==============================
+Mutations
+=========
 .. automodule:: graphene_django_plus.mutations
    :members:
 
 
-Graphene Django Plus utils
-==========================
+Utils
+=====
 .. automodule:: graphene_django_plus.utils
    :members:
