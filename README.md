@@ -104,7 +104,7 @@ class Query(graphene.ObjectType):
 This can be queried like:
 
 ```graphql
-# All objects
+# All objects that the user has permission to see
 query {
   myModels {
     totalCount
@@ -117,7 +117,7 @@ query {
   }
 }
 
-# Single object
+# Single object if the user has permission to see it
 query {
   myModel(id: "<relay global ID>") {
     id
@@ -229,6 +229,7 @@ class Mutation(graphene.ObjectType):
 This can be used to create/update/delete like:
 
 ```graphql
+# Create mutation
 mutation {
   myModelCreate(input: {name: "foobar"}) {
     myModel {
@@ -241,6 +242,7 @@ mutation {
   }
 }
 
+# Update mutation
 mutation {
   myModelUpdate(input: {id: "<relay global ID>" name: "foobar"}) {
     myModel {
@@ -253,6 +255,7 @@ mutation {
   }
 }
 
+# Delete mutation
 mutation {
   myModelDelete(input: {id: "<relay global ID>"}) {
     myModel {
