@@ -14,7 +14,7 @@ def _read(fname):
 
 setup(
     name='graphene-django-plus',
-    version='0.2.0.post0',
+    version='0.3.0',
     author='Zerosoft Tecnologia LTDA',
     author_email='admin@zerosoft.com.br',
     description='Tools to easily create permissioned CRUD endpoints in graphene.',
