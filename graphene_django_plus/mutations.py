@@ -562,9 +562,11 @@ class ModelUpdateMutation(ModelMutation):
 
     @classmethod
     def __init_subclass_with_meta__(cls, **kwargs):
+        if 'only_fields' in kwargs and 'id' not in kwargs['only_fields']:
+            kwargs['only_fields'].insert(0, 'id')
         required_fields = kwargs.pop('required_fields', []) or []
         if 'id' not in required_fields:
-            required_fields.append('id')
+            required_fields.insert(0, 'id')
         super().__init_subclass_with_meta__(
             required_fields=required_fields,
             **kwargs,
