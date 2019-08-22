@@ -14,6 +14,10 @@ except ImportError:
     _BaseDjangoObjectType = DjangoObjectType
 
 from .exceptions import PermissionDenied
+from .models import (
+    GuardedModel,
+    GuardedModelManager,
+)
 
 
 class MutationErrorType(graphene.ObjectType):
@@ -130,7 +134,7 @@ class ModelType(_BaseDjangoObjectType):
             raise PermissionDenied()
 
         if (cls._meta.object_permissions and
-                hasattr(cls._meta.model.objects, 'for_user')):
+                isinstance(cls._meta.model.objects, GuardedModelManager)):
             if isinstance(qs, models.Manager):
                 qs = qs.get_queryset()
             qs &= cls._meta.model.objects.for_user(
@@ -181,7 +185,7 @@ class ModelType(_BaseDjangoObjectType):
         The easiest way when using `guardian` is to inherit it
         from :class:`graphene_django_plus.models.GuardedModel`.
         """
-        if not hasattr(instance, 'has_perm'):
+        if not isinstance(instance, GuardedModel):
             return True
 
         return instance.has_perm(

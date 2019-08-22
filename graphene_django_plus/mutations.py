@@ -22,6 +22,7 @@ from graphene_django.converter import convert_django_field_with_choices
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
+from .models import GuardedModel
 from .types import (
     MutationErrorType,
     UploadType,
@@ -326,7 +327,7 @@ class BaseModelMutation(BaseMutation):
         The easiest way when using `guardian` is to inherit it
         from :class:`graphene_django_plus.models.GuardedModel`.
         """
-        if not hasattr(instance, 'has_perm'):
+        if not isinstance(instance, GuardedModel):
             return True
 
         return instance.has_perm(
