@@ -92,14 +92,13 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
             ret[name] = graphene.ID(
                 description=field.help_text,
+                required=not field.null,
             )
         else:
             ret[name] = convert_django_field_with_choices(field, _registry)
 
         if required_fields is not None:
             ret[name].kwargs['required'] = name in required_fields
-        else:
-            ret[name].kwargs['required'] = not field.null or field.default
 
     return ret
 
