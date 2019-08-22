@@ -24,7 +24,7 @@ copyright = '2019, Zerosoft Tecnologia LTDA'
 author = 'Zerosoft Tecnologia LTDA'
 
 # The full version, including alpha/beta/rc tags
-release = '0.4.5'
+release = '0.4.7'
 
 
 # -- General configuration ---------------------------------------------------
