@@ -508,8 +508,10 @@ class ModelMutation(BaseModelMutation):
         """
         obj_id = data.get('id')
         if obj_id:
+            checked_permissions = True
             instance = cls.get_instance(info, obj_id)
         else:
+            checked_permissions = False
             instance = cls._meta.model()
 
         cleaned_input = cls.clean_input(info, instance, data)
@@ -526,6 +528,13 @@ class ModelMutation(BaseModelMutation):
             d = cleaned_input.get(f.name, None)
             if d is not None:
                 f.save_form_data(instance, d)
+
+        if not checked_permissions:
+            # If we did not check permissions when getting the instance,
+            # check if here. The model might check the permissions based on
+            # some related objects
+            if not cls.check_object_permissions(info.context.user, instance):
+                raise PermissionDenied()
 
         return cls(**{cls._meta.return_field_name: instance})
 
