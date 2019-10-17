@@ -1,9 +1,11 @@
 import graphene
 from graphene import relay
 
-from graphene_django.fields import DjangoConnectionField
 from graphene_django_plus.types import ModelType
-from graphene_django_plus.fields import CountableConnection
+from graphene_django_plus.fields import (
+    CountableConnection,
+    OrderableConnectionField,
+)
 from graphene_django_plus.mutations import (
     ModelCreateMutation,
     ModelUpdateMutation,
@@ -27,6 +29,7 @@ class IssueType(ModelType):
         object_permissions = [
             'can_read',
         ]
+        filter_fields = {}
 
 
 class MilestoneType(ModelType):
@@ -37,6 +40,7 @@ class MilestoneType(ModelType):
         prefetch = {
             'issues': IssueType,
         }
+        filter_fields = {}
 
 
 class ProjectType(ModelType):
@@ -47,19 +51,20 @@ class ProjectType(ModelType):
         prefetch = {
             'milestones': MilestoneType,
         }
+        filter_fields = {}
 
 
 # Queries
 
 
 class Query(graphene.ObjectType):
-    projects = DjangoConnectionField(ProjectType)
+    projects = OrderableConnectionField(ProjectType)
     project = relay.Node.Field(ProjectType)
 
-    milestones = DjangoConnectionField(MilestoneType)
+    milestones = OrderableConnectionField(MilestoneType)
     milestone = relay.Node.Field(MilestoneType)
 
-    issues = DjangoConnectionField(IssueType)
+    issues = OrderableConnectionField(IssueType)
     issue = relay.Node.Field(IssueType)
 
 
