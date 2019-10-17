@@ -1,9 +1,6 @@
 import base64
 
-from graphene_django_plus.utils import (
-    get_nodes,
-    snake2camelcase,
-)
+from graphene_django_plus.utils import get_nodes
 from .base import BaseTestCase
 from .schema import (
     ProjectType,
@@ -37,12 +34,3 @@ class TestTypes(BaseTestCase):
         )
         with self.assertRaises(AssertionError):
             get_nodes(issues_with_wrong_id)
-
-    def test_snake2camelcase(self):
-        for v, ret in [
-                (None, None),
-                (1, 1),
-                ('foo', 'foo'),
-                ('foo_bar', 'fooBar'),
-                ('foo_bar_bin', 'fooBarBin')]:
-            self.assertEqual(snake2camelcase(v), ret)

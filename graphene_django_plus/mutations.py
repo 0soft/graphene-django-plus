@@ -19,6 +19,7 @@ from graphene.types.mutation import MutationOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.registry import get_global_registry
 from graphene_django.converter import convert_django_field_with_choices
+from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
@@ -27,10 +28,7 @@ from .types import (
     MutationErrorType,
     UploadType,
 )
-from .utils import (
-    get_nodes,
-    snake2camelcase,
-)
+from .utils import get_nodes
 
 _registry = get_global_registry()
 
@@ -62,7 +60,7 @@ def _get_validation_errors(validation_error):
                 if field == NON_FIELD_ERRORS:
                     field = None
                 else:
-                    field = snake2camelcase(field)
+                    field = to_camel_case(field)
                 e_list.append(MutationErrorType(field=field, message=e))
     else:
         # convert non-field errors

@@ -85,12 +85,3 @@ def get_nodes(ids, graphene_type=None):
             )
 
     return nodes
-
-
-def snake2camelcase(name):
-    """Convert snake_case variable name to camelCase."""
-    if not isinstance(name, str):
-        return name
-
-    split_name = name.split('_')
-    return split_name[0] + ''.join(map(str.capitalize, split_name[1:]))
