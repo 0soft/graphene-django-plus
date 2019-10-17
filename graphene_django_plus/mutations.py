@@ -359,6 +359,7 @@ class BaseModelMutation(BaseMutation):
         Override this to perform any operation on the instance
         after its `.save()` method is called.
         """
+        pass
 
     @classmethod
     def save(cls, info, instance, cleaned_input=None):
@@ -401,7 +402,7 @@ class BaseModelMutation(BaseMutation):
         cls.after_delete(info, instance)
 
 
-class BaseModelOperationMutation(BaseModelMutation):
+class ModelOperationMutation(BaseModelMutation):
     """Base mutation for operations on models.
 
     Just like a regular :class:`BaseModelMutation`, but this will receive only
@@ -581,7 +582,7 @@ class ModelUpdateMutation(ModelMutation):
         )
 
 
-class ModelDeleteMutation(BaseModelOperationMutation):
+class ModelDeleteMutation(ModelOperationMutation):
     """Delete mutation for models."""
 
     class Meta:
@@ -604,3 +605,7 @@ class ModelDeleteMutation(BaseModelOperationMutation):
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
         return cls(**{cls._meta.return_field_name: instance})
+
+
+# Compatibility with older versions
+BaseModelOperationMutation = ModelOperationMutation
