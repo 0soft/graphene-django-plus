@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from graphene_django.views import GraphQLView
+from graphene_django_plus.views import GraphQLView
 
 from .schema import schema
 

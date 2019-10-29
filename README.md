@@ -39,6 +39,7 @@ pip install graphene-django-optimizer django-guardian
     * Automatic model validation based on the model's validators
 * Very simple to create some quick CRUD endpoints for your models
 * Easy to extend and override functionalities
+* File upload handling
 
 ## What is included
 

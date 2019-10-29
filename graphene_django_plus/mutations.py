@@ -88,6 +88,11 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             ret[name] = graphene.ID(
                 description="The ID of the object.",
             )
+        elif isinstance(field, models.FileField):
+            ret[name] = UploadType(
+                description=field.help_text,
+                required=not field.null,
+            )
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
             ret[name] = graphene.ID(
                 description=field.help_text,
