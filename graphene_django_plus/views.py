@@ -70,7 +70,7 @@ class GraphQLView(_GraphQLView):
             files_map = json.loads(data.get('map', '{}'))
             for k, v in files_map.items():
                 for f in v:
-                    _obj_set(operations, f, k, False)
+                    _obj_set(operations, f, k)
             query = operations.get("query")
             variables = operations.get("variables")
 
