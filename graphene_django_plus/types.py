@@ -133,10 +133,11 @@ class ModelType(_BaseDjangoObjectType):
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
+        if isinstance(qs, models.Manager):
+            qs = qs.get_queryset()
+
         if (cls._meta.object_permissions and
                 isinstance(cls._meta.model.objects, GuardedModelManager)):
-            if isinstance(qs, models.Manager):
-                qs = qs.get_queryset()
             qs &= cls._meta.model.objects.for_user(
                 info.context.user,
                 cls._meta.object_permissions,
@@ -147,7 +148,12 @@ class ModelType(_BaseDjangoObjectType):
         if gql_optimizer is None:
             return ret
 
-        return gql_optimizer.query(ret, info)
+        ret = gql_optimizer.query(ret, info)
+        prl = {(i.prefetch_to, i.to_attr): i
+               for i in ret._prefetch_related_lookups}
+        ret._prefetch_related_lookups = tuple(prl.values())
+
+        return ret
 
     @classmethod
     def get_node(cls, info, id):

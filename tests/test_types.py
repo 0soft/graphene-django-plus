@@ -277,6 +277,39 @@ class TestTypes(BaseTestCase):
             {'data': {'issue': {'name': 'Issue 1'}}},
         )
 
+        # issue with more data (allowed)
+        p_id = base64.b64encode('IssueType:{}'.format(
+            self.allowed_issues[0].id,
+        ).encode()).decode()
+        r = self.query(
+            """
+            query {
+              issue (id: "%s") {
+                name
+                milestone {
+                  name
+                  project {
+                    name
+                  }
+                }
+              }
+            }
+            """ % (p_id, ),
+            op_name='issue'
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {'issue': {
+                'name': 'Issue 1',
+                'milestone': {
+                    'name': 'Milestone 1',
+                    'project': {
+                        'name': 'Test Project',
+                    },
+                }
+            }}},
+        )
+
         # issue (not allowed)
         p_id = base64.b64encode('IssueType:{}'.format(
             self.unallowed_issues[0].id,
@@ -331,6 +364,39 @@ class TestTypes(BaseTestCase):
         self.assertEqual(
             json.loads(r.content),
             {'data': {'issue': {'name': 'Issue 1'}}},
+        )
+
+        # issue with more data (allowed)
+        p_id = base64.b64encode('IssueType:{}'.format(
+            self.allowed_issues[0].id,
+        ).encode()).decode()
+        r = self.query(
+            """
+            query {
+              issue (id: "%s") {
+                name
+                milestone {
+                  name
+                  project {
+                    name
+                  }
+                }
+              }
+            }
+            """ % (p_id, ),
+            op_name='issue'
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {'issue': {
+                'name': 'Issue 1',
+                'milestone': {
+                    'name': 'Milestone 1',
+                    'project': {
+                        'name': 'Test Project',
+                    },
+                }
+            }}},
         )
 
         # issue (not allowed)
