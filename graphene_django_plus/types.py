@@ -1,6 +1,7 @@
 import types
 
 from django.db import models
+from django.db.models import Prefetch
 import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.fields import DjangoConnectionField
@@ -149,7 +150,7 @@ class ModelType(_BaseDjangoObjectType):
             return ret
 
         ret = gql_optimizer.query(ret, info)
-        prl = {(i.prefetch_to, i.to_attr): i
+        prl = {i.to_attr if isinstance(i, Prefetch) else i: i
                for i in ret._prefetch_related_lookups}
         ret._prefetch_related_lookups = tuple(prl.values())
 
