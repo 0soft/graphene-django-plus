@@ -28,7 +28,10 @@ from .types import (
     MutationErrorType,
     UploadType,
 )
-from .utils import get_nodes
+from .utils import (
+    get_node,
+    get_nodes,
+)
 
 _registry = get_global_registry()
 
@@ -168,11 +171,7 @@ class BaseMutation(ClientIDMutation):
             return None
 
         try:
-            node = graphene.Node.get_node_from_global_id(
-                info,
-                node_id,
-                only_type,
-            )
+            node = get_node(node_id, only_type)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:

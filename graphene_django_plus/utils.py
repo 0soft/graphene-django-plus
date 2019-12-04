@@ -47,6 +47,15 @@ def _resolve_graphene_type(type_name):
         raise AssertionError("Could not resolve the type {}".format(type_name))
 
 
+def get_node(id, graphene_type=None):
+    """Get a node given the relay id."""
+    node_type, _id = from_global_id(id)
+    if not graphene_type:
+        graphene_type = _resolve_graphene_type(node_type)
+
+    return graphene_type._meta.model.objects.get(pk=_id)
+
+
 def get_nodes(ids, graphene_type=None):
     """Get a list of nodes.
 
