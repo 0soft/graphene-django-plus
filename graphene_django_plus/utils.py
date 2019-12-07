@@ -1,8 +1,12 @@
+import itertools
+
 from graphene_django.registry import get_global_registry
+from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
 _registry = get_global_registry()
+_extra_register = {}
 
 
 def _resolve_nodes(ids, graphene_type=None):
@@ -40,11 +44,19 @@ def _resolve_nodes(ids, graphene_type=None):
 
 
 def _resolve_graphene_type(type_name):
-    for _, _type in _registry._registry.items():
+    for _, _type in itertools.chain(_extra_register.items(),
+                                    _registry._registry.items()):
         if _type._meta.name == type_name:
             return _type
     else:  # pragma: no cover
         raise AssertionError("Could not resolve the type {}".format(type_name))
+
+
+def register_type(graphene_type):
+    """Register an extra type to be resolved in mutations."""
+    assert issubclass(graphene_type, DjangoObjectType)
+    _extra_register[graphene_type._meta.model] = graphene_type
+    return graphene_type
 
 
 def get_node(id, graphene_type=None):
