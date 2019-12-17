@@ -96,6 +96,11 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 description=field.help_text,
                 required=not field.null,
             )
+        elif isinstance(field, models.BooleanField):
+            ret[name] = graphene.Boolean(
+                description=field.help_text,
+                required=not field.null and not field.blank,
+            )
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
             ret[name] = graphene.ID(
                 description=field.help_text,
