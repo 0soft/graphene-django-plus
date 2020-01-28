@@ -76,7 +76,7 @@ def _get_validation_errors(validation_error):
 def _get_fields(model, only_fields, exclude_fields, required_fields):
     fields = [
         (field.name, field)
-        for field in sorted(list(model._meta.fields))
+        for field in sorted(list(model._meta.fields + model._meta.many_to_many))
     ]
 
     ret = collections.OrderedDict()
@@ -103,6 +103,12 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             )
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
             ret[name] = graphene.ID(
+                description=field.help_text,
+                required=not field.null,
+            )
+        elif isinstance(field, models.ManyToManyField):
+            ret[name] = graphene.List(
+                graphene.ID,
                 description=field.help_text,
                 required=not field.null,
             )
