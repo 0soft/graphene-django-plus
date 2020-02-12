@@ -132,7 +132,7 @@ class ModelType(_BaseDjangoObjectType):
         `graphene_django_optimizer` is installed.
         """
         if not cls.check_permissions(info.context.user):
-            raise PermissionDenied()
+            raise PermissionDenied("No permissions")
 
         if isinstance(qs, models.Manager):
             qs = qs.get_queryset()
