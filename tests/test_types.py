@@ -324,7 +324,10 @@ class TestTypes(BaseTestCase):
             """ % (p_id, ),
             op_name='issue'
         )
-        self.assertResponseHasErrors(r)
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {'issue': None}},
+        )
 
     @mock.patch('graphene_django_plus.types.gql_optimizer', None)
     def test_result_no_gql_optimizer(self):
