@@ -136,11 +136,6 @@ def _is_id_field(field):
     )
 
 
-def _is_upload_field(field):
-    t = getattr(field.type, 'of_type', field.type)
-    return t == UploadType
-
-
 class BaseMutationOptions(MutationOptions):
     """Model type options for :class:`BaseMutation` and subclasses."""
 
@@ -502,10 +497,6 @@ class ModelMutation(BaseModelMutation):
                 # ID field
                 instance = cls.get_node(info, value, f_name)
                 cleaned_input[f_name] = instance
-            elif value is not None and _is_upload_field(f_item):
-                # uploaded files
-                value = info.context.FILES.get(value)
-                cleaned_input[f_name] = value
             else:
                 # other fields
                 cleaned_input[f_name] = value
