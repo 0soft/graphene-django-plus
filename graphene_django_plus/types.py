@@ -132,7 +132,7 @@ class ModelType(_BaseDjangoObjectType):
         `graphene_django_optimizer` is installed.
         """
         if not cls.check_permissions(info.context.user):
-            raise PermissionDenied()
+            raise PermissionDenied("No permissions")
 
         if isinstance(qs, models.Manager):
             qs = qs.get_queryset()
@@ -159,7 +159,19 @@ class ModelType(_BaseDjangoObjectType):
     @classmethod
     def get_node(cls, info, id):
         """Get the node instance given the relay global id."""
-        instance = super().get_node(info, id)
+        if gql_optimizer is not None:
+            # optimizer will ignore queryset so call the same as they call
+            # but passing objects from get_queryset to keep our preferences
+            instance = cls.maybe_optimize(
+                info,
+                cls.get_queryset(cls._meta.model.objects, info),
+                id,
+            )
+        else:
+            instance = super().get_node(info, id)
+
+        if instance is None:
+            return None
 
         if not cls.check_object_permissions(info.context.user, instance):
             raise PermissionDenied()
