@@ -15,8 +15,9 @@ class CountableConnection(relay.Connection):
         description="The total count of objects in this query.",
     )
 
-    def resolve_total_count(self, info, **kwargs):
-        return self.iterable.count()
+    @staticmethod
+    def resolve_total_count(root, info, **kwargs):
+        return root.iterable.count()
 
 
 class OrderableConnectionField(DjangoFilterConnectionField):
