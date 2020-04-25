@@ -1,5 +1,10 @@
 import itertools
 
+import graphene
+from graphene.types.mountedtype import MountedType
+from graphene.types.structures import Structure
+from graphene.types.unmountedtype import UnmountedType
+from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.registry import get_global_registry
 from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError
@@ -7,6 +12,7 @@ from graphql_relay import from_global_id
 
 _registry = get_global_registry()
 _extra_register = {}
+_input_registry = dict()
 
 
 def _resolve_nodes(ids, graphene_type=None):
@@ -50,6 +56,23 @@ def _resolve_graphene_type(type_name):
             return _type
     else:  # pragma: no cover
         raise AssertionError("Could not resolve the type {}".format(type_name))
+
+
+def _get_input_attrs(object_type):
+    new = {}
+
+    for attr, value in object_type.__dict__.items():
+        if not isinstance(value, (MountedType, UnmountedType)):
+            continue
+
+        if isinstance(value, Structure) and issubclass(value.of_type, graphene.ObjectType):
+            value = type(value)(_input_registry[value.of_type])
+        elif isinstance(value, graphene.ObjectType):
+            value = _input_registry[value.of_type]
+
+        new[attr] = value
+
+    return yank_fields_from_attrs(new, _as=graphene.InputField)
 
 
 def register_type(graphene_type):
@@ -106,3 +129,18 @@ def get_nodes(ids, graphene_type=None):
             )
 
     return nodes
+
+
+def get_inputtype(name, object_type):
+    """Get an input type based on the object type"""
+    if object_type in _input_registry:
+        return _input_registry[object_type]
+
+    inputtype = type(
+        name,
+        (graphene.InputObjectType, ),
+        _get_input_attrs(object_type),
+    )
+
+    _input_registry[object_type] = inputtype
+    return inputtype
