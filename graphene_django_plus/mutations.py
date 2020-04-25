@@ -28,6 +28,10 @@ from .types import (
     MutationErrorType,
     UploadType,
 )
+from .perms import (
+    check_perms,
+    check_authenticated,
+)
 from .utils import (
     get_node,
     get_nodes,
@@ -147,6 +151,9 @@ class BaseMutationOptions(MutationOptions):
     #: A list of Django permissions to check against the user
     permissions = None
 
+    #: If any permission should allow the user to execute this mutation
+    permissions_any = None
+
     #: If we should allow unauthenticated users to do this mutation
     allow_unauthenticated = False
 
@@ -165,12 +172,14 @@ class BaseMutation(ClientIDMutation):
 
     @classmethod
     def __init_subclass_with_meta__(cls, permissions=None,
+                                    permissions_any=True,
                                     allow_unauthenticated=False,
                                     _meta=None, **kwargs):
         if not _meta:
             _meta = BaseMutationOptions(cls)
 
         _meta.permissions = permissions or []
+        _meta.permissions_any = permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
@@ -210,13 +219,14 @@ class BaseMutation(ClientIDMutation):
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
         """
-        if not cls._meta.allow_unauthenticated and not user.is_authenticated:
+        if not cls._meta.allow_unauthenticated and not check_authenticated(user):
             return False
 
         if not cls._meta.permissions:
             return True
 
-        return user.has_perms(cls._meta.permissions)
+        return check_perms(user, cls._meta.permissions,
+                           any_perm=cls._meta.permissions_any)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **data):
