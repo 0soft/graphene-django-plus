@@ -12,6 +12,10 @@ except ImportError:
     _BaseDjangoObjectType = DjangoObjectType
 
 from .exceptions import PermissionDenied
+from .perms import (
+    check_perms,
+    check_authenticated,
+)
 from .models import (
     GuardedModel,
     GuardedModelManager,
@@ -66,6 +70,9 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     #: query this model.
     permissions = None
 
+    #: If any permission should allow the user to query this model.
+    permissions_any = True
+
     #: A list of guardian object permissions to check if the user has
     #: permission to query the model object.
     object_permissions = None
@@ -83,6 +90,7 @@ class ModelType(_BaseDjangoObjectType):
     @classmethod
     def __init_subclass_with_meta__(cls, _meta=None, model=None,
                                     permissions=None,
+                                    permissions_any=True,
                                     object_permissions=None,
                                     object_permissions_any=True,
                                     allow_unauthenticated=False,
@@ -92,6 +100,7 @@ class ModelType(_BaseDjangoObjectType):
             _meta = DjangoObjectTypeOptions(cls)
 
         _meta.permissions = permissions or []
+        _meta.permissions_any = permissions_any
         _meta.object_permissions = object_permissions or []
         _meta.object_permissions_any = object_permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
@@ -162,13 +171,14 @@ class ModelType(_BaseDjangoObjectType):
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
         """
-        if not cls._meta.allow_unauthenticated and not user.is_authenticated:
+        if not cls._meta.allow_unauthenticated and not check_authenticated(user):
             return False
 
         if not cls._meta.permissions:
             return True
 
-        return user.has_perms(cls._meta.permissions)
+        return check_perms(user, cls._meta.permissions,
+                           any_perm=cls._meta.permissions_any)
 
     @classmethod
     def check_object_permissions(cls, user, instance):
