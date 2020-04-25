@@ -37,9 +37,6 @@ class MilestoneType(ModelType):
         model = Milestone
         connection_class = CountableConnection
         interfaces = [relay.Node]
-        prefetch = {
-            'issues': IssueType,
-        }
         filter_fields = {}
 
 
@@ -48,9 +45,6 @@ class ProjectType(ModelType):
         model = Project
         connection_class = CountableConnection
         interfaces = [relay.Node]
-        prefetch = {
-            'milestones': MilestoneType,
-        }
         filter_fields = {}
 
 

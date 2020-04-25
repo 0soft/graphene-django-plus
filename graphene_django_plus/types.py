@@ -1,10 +1,7 @@
-import types
-
 from django.db import models
 from django.db.models import Prefetch
 import graphene
 from graphene_django import DjangoObjectType
-from graphene_django.fields import DjangoConnectionField
 from graphene_django.types import DjangoObjectTypeOptions
 
 try:
@@ -76,12 +73,6 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     #: If any object permission should allow the user to query this model.
     object_permissions_any = True
 
-    #: A dict defining fields to be prefetched. This should map the
-    #: related name to the type. e.g. `{'items': ItemType}`.
-    #: Note that for this to work, `graphene_django_optimizer` needs
-    #: to be installed
-    prefetch = None
-
 
 class ModelType(_BaseDjangoObjectType):
     """Base type with automatic optimizations and permissions checking."""
@@ -104,20 +95,6 @@ class ModelType(_BaseDjangoObjectType):
         _meta.object_permissions = object_permissions or []
         _meta.object_permissions_any = object_permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
-
-        # Automatic prefetch optimization
-        if gql_optimizer is not None:
-            prefetch = prefetch or {}
-            for k, v in prefetch.items():
-                if isinstance(v, types.FunctionType):
-                    v = v()
-                f = gql_optimizer.field(
-                    DjangoConnectionField(v),
-                    model_field=k,
-                )
-                r = lambda s, i, **kw: getattr(s, k).all()
-                setattr(cls, k, f)
-                setattr(cls, 'resolve_' + k, r)
 
         super().__init_subclass_with_meta__(_meta=_meta, model=model, **kwargs)
 
