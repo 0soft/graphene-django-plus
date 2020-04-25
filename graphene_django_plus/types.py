@@ -145,6 +145,9 @@ class ModelType(_BaseDjangoObjectType):
     @classmethod
     def get_node(cls, info, id):
         """Get the node instance given the relay global id."""
+        # NOTE: get_queryset will filter allowed models for the user so
+        # this will return None if he is not allowed to retrieve this
+
         if gql_optimizer is not None:
             # optimizer will ignore queryset so call the same as they call
             # but passing objects from get_queryset to keep our preferences
@@ -155,12 +158,6 @@ class ModelType(_BaseDjangoObjectType):
             )
         else:
             instance = super().get_node(info, id)
-
-        if instance is None:
-            return None
-
-        if not cls.check_object_permissions(info.context.user, instance):
-            raise PermissionDenied()
 
         return instance
 

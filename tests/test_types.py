@@ -2,7 +2,10 @@ import base64
 import json
 from unittest import mock
 
+from graphene_django import DjangoObjectType
+
 from .base import BaseTestCase
+from .schema import IssueType
 
 
 class TestTypes(BaseTestCase):
@@ -402,18 +405,25 @@ class TestTypes(BaseTestCase):
             }}},
         )
 
-        # issue (not allowed)
-        p_id = base64.b64encode('IssueType:{}'.format(
-            self.unallowed_issues[0].id,
-        ).encode()).decode()
-        r = self.query(
-            """
-            query {
-              issue (id: "%s") {
-                name
-              }
-            }
-            """ % (p_id, ),
-            op_name='issue'
-        )
-        self.assertResponseHasErrors(r)
+        with mock.patch.object(
+                IssueType,
+                'get_node',
+                lambda info, id: DjangoObjectType.get_node.__func__(IssueType, info, id)):
+            # issue (not allowed)
+            p_id = base64.b64encode('IssueType:{}'.format(
+                self.unallowed_issues[0].id,
+            ).encode()).decode()
+            r = self.query(
+                """
+                query {
+                  issue (id: "%s") {
+                    name
+                  }
+                }
+                """ % (p_id, ),
+                op_name='issue'
+            )
+            self.assertEqual(
+                json.loads(r.content),
+                {'data': {'issue': None}},
+            )
