@@ -15,8 +15,10 @@ class CountableConnection(relay.Connection):
         description="The total count of objects in this query.",
     )
 
-    @staticmethod
     def resolve_total_count(root, info, **kwargs):
+        if hasattr(root, 'length'):
+            return root.length
+
         return root.iterable.count()
 
 
