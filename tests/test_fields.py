@@ -10,7 +10,7 @@ class TestModels(BaseTestCase):
         # milestones
         r = self.query(
             """
-            query {
+            query milestones {
                 milestones (orderby: ["name"]) {
                     edges {
                         node {
@@ -36,7 +36,7 @@ class TestModels(BaseTestCase):
         # milestones reversed
         r = self.query(
             """
-            query {
+            query milestones {
                 milestones (orderby: ["-name"]) {
                     edges {
                         node {
@@ -63,7 +63,7 @@ class TestModels(BaseTestCase):
         # projects
         r = self.query(
             """
-            query {
+            query projects {
                 projects {
                     totalCount
                 }
@@ -79,7 +79,7 @@ class TestModels(BaseTestCase):
         # milestones
         r = self.query(
             """
-            query {
+            query milestones {
                 milestones {
                     totalCount
                 }
@@ -95,7 +95,7 @@ class TestModels(BaseTestCase):
         # issues
         r = self.query(
             """
-            query {
+            query issues {
                 issues {
                     totalCount
                 }
@@ -113,7 +113,7 @@ class TestModels(BaseTestCase):
         # projects
         r = self.query(
             """
-            query {
+            query projects {
                 projects {
                     totalCount
                 }
@@ -129,7 +129,7 @@ class TestModels(BaseTestCase):
         # milestones
         r = self.query(
             """
-            query {
+            query milestones {
                 milestones {
                     totalCount
                 }
@@ -145,7 +145,7 @@ class TestModels(BaseTestCase):
         # issues
         r = self.query(
             """
-            query {
+            query issues {
                 issues {
                     totalCount
                 }

@@ -14,7 +14,7 @@ class TestTypes(BaseTestCase):
         # projects
         r = self.query(
             """
-            query {
+            query projects {
               projects {
                 edges {
                   node {
@@ -79,7 +79,7 @@ class TestTypes(BaseTestCase):
         # issues
         r = self.query(
             """
-            query {
+            query issues {
               issues {
                 edges {
                   node {
@@ -130,7 +130,7 @@ class TestTypes(BaseTestCase):
         # projects
         r = self.query(
             """
-            query {
+            query projects {
               projects {
                 edges {
                   node {
@@ -195,7 +195,7 @@ class TestTypes(BaseTestCase):
         # issues
         r = self.query(
             """
-            query {
+            query issues {
               issues {
                 edges {
                   node {
@@ -248,7 +248,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query project {
               project (id: "%s") {
                 name
               }
@@ -267,7 +267,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query issue {
               issue (id: "%s") {
                 name
               }
@@ -286,7 +286,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query issue {
               issue (id: "%s") {
                 name
                 milestone {
@@ -319,7 +319,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query issue {
               issue (id: "%s") {
                 name
               }
@@ -340,7 +340,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query project {
               project (id: "%s") {
                 name
               }
@@ -359,7 +359,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query issue {
               issue (id: "%s") {
                 name
               }
@@ -378,7 +378,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            query {
+            query issue {
               issue (id: "%s") {
                 name
                 milestone {
@@ -415,7 +415,7 @@ class TestTypes(BaseTestCase):
             ).encode()).decode()
             r = self.query(
                 """
-                query {
+                query issue {
                   issue (id: "%s") {
                     name
                   }

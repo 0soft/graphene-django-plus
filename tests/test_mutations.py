@@ -16,7 +16,7 @@ class TestTypes(BaseTestCase):
         self.assertIsNone(Project.objects.filter(name='FooBar').first())
         r = self.query(
             """
-            mutation {
+            mutation projectCreate {
               projectCreate (input: {name: "FooBar"}) {
                 project {
                   name
@@ -39,7 +39,7 @@ class TestTypes(BaseTestCase):
         self.assertIsNone(Milestone.objects.filter(name='BarBin').first())
         r = self.query(
             """
-            mutation {
+            mutation milestoneCreate {
               milestoneCreate (input: {name: "BarBin", project: "%s"}) {
                 milestone {
                   name
@@ -75,7 +75,7 @@ class TestTypes(BaseTestCase):
         self.assertNotEqual(self.project.name, "XXX")
         r = self.query(
             """
-            mutation {
+            mutation projectUpdate {
               projectUpdate (input: {id: "%s" name: "XXX"}) {
                 project {
                   name
@@ -100,7 +100,7 @@ class TestTypes(BaseTestCase):
         self.assertNotEqual(issue.name, "YYY")
         r = self.query(
             """
-            mutation {
+            mutation issueUpdate {
               issueUpdate (input: {id: "%s" name: "YYY"}) {
                 issue {
                   name
@@ -124,7 +124,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            mutation {
+            mutation issueUpdate {
               issueUpdate (input: {id: "%s" name: "YYY"}) {
                 issue {
                   name
@@ -143,7 +143,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            mutation {
+            mutation projectDelete {
               projectDelete (input: {id: "%s"}) {
                 project {
                   name
@@ -166,7 +166,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            mutation {
+            mutation issueDelete {
               issueDelete (input: {id: "%s"}) {
                 issue {
                   name
@@ -189,7 +189,7 @@ class TestTypes(BaseTestCase):
         ).encode()).decode()
         r = self.query(
             """
-            mutation {
+            mutation issueDelete {
               issueDelete (input: {id: "%s"}) {
                 issue {
                   name
