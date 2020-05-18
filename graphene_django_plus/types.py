@@ -159,6 +159,10 @@ class ModelType(_BaseDjangoObjectType):
         else:
             instance = super().get_node(info, id)
 
+        if (instance is not None and
+                not cls.check_object_permissions(info.context.user, instance)):
+            raise PermissionDenied("No permissions")
+
         return instance
 
     @classmethod
