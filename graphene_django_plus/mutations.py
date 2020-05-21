@@ -350,6 +350,9 @@ class BaseModelMutation(BaseMutation):
         The easiest way when using `guardian` is to inherit it
         from :class:`graphene_django_plus.models.GuardedModel`.
         """
+        if not cls._meta.object_permissions:
+            return True
+
         if not isinstance(instance, GuardedModel):
             return True
 
