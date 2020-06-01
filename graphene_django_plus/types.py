@@ -108,7 +108,7 @@ class ModelType(_BaseDjangoObjectType):
         super().__init_subclass_with_meta__(_meta=_meta, model=model, **kwargs)
 
     @classmethod
-    def get_queryset(cls, qs, info):
+    def get_queryset(cls, qs, info, optimize=True):
         """Get the queryset checking for permissions and optimizing the query.
 
         Override the default graphene's `get_queryset` to check for permissions
@@ -132,7 +132,7 @@ class ModelType(_BaseDjangoObjectType):
             )
 
         ret = super().get_queryset(qs, info)
-        if gql_optimizer is None:
+        if not optimize or gql_optimizer is None:
             return ret
 
         ret = gql_optimizer.query(ret, info)
@@ -153,7 +153,7 @@ class ModelType(_BaseDjangoObjectType):
             # but passing objects from get_queryset to keep our preferences
             instance = cls.maybe_optimize(
                 info,
-                cls.get_queryset(cls._meta.model.objects, info),
+                cls.get_queryset(cls._meta.model.objects, info, optimize=False),
                 id,
             )
         else:
