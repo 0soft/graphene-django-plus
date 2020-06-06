@@ -2,7 +2,7 @@
 codecov==2.0.22
 django-filter==2.2.0
 django-guardian==2.2.0
-django==3.0.6
+django==3.0.7
 flake8==3.8.1
 graphene-django-optimizer==0.6.2
 graphene-django==2.10.0
