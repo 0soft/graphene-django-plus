@@ -96,7 +96,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 list(model._meta.related_objects),
                 key=lambda field: field.name,
             )
-            if field.remote_field.null
+            if not isinstance(field, ManyToOneRel) or field.remote_field.null
         ],
     )
 
