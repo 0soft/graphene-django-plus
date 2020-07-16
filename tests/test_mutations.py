@@ -244,18 +244,18 @@ class TestMutationRelatedObjects(BaseTestCase):
             json.loads(r.content),
             {'data': {
                 'milestoneCreate': {
-                  'milestone': {
-                    'name': 'release_1A',
-                    'issues': {
-                      'edges': [{
-                        'node': {
-                          'name': 'Issue 1'
-                        },
-                      }]
+                    'milestone': {
+                        'name': 'release_1A',
+                        'issues': {
+                            'edges': [{
+                                'node': {
+                                    'name': 'Issue 1'
+                                },
+                            }]
+                        }
                     }
-                  }
                 }
-              }
+            }
             }
         )
         self.assertIsNotNone(Milestone.objects.filter(name=milestone).first())
@@ -298,18 +298,18 @@ class TestMutationRelatedObjects(BaseTestCase):
             json.loads(r.content),
             {'data': {
                 'milestoneUpdate': {
-                  'milestone': {
-                    'name': 'release-A',
-                    'issues': {
-                      'edges': [{
-                        'node': {
-                          'name': 'Issue 1'
-                        },
-                      }]
+                    'milestone': {
+                        'name': 'release-A',
+                        'issues': {
+                            'edges': [{
+                                'node': {
+                                    'name': 'Issue 1'
+                                },
+                            }]
+                        }
                     }
-                  }
                 }
-              }
+            }
             }
         )
 
@@ -347,13 +347,13 @@ class TestMutationRelatedObjects(BaseTestCase):
             json.loads(r.content),
             {'data': {
                 'milestoneUpdate': {
-                  'milestone': {
-                    'name': 'release-A',
-                    'issues': {
-                      'edges': []
+                    'milestone': {
+                        'name': 'release-A',
+                        'issues': {
+                            'edges': []
+                        }
                     }
-                  }
                 }
-              }
+            }
             }
         )

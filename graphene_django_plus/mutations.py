@@ -585,7 +585,7 @@ class ModelMutation(BaseModelMutation):
 
             if not hasattr(f, 'save_form_data'):
                 continue
-            
+
             d = cleaned_input.get(f.name, None)
             if d is not None:
                 f.save_form_data(instance, d)
