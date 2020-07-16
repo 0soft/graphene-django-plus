@@ -13,6 +13,10 @@ from django.db import (
     models,
     transaction,
 )
+from django.db.models.fields.reverse_related import (
+    ManyToOneRel,
+    ManyToManyRel,
+)
 import graphene
 from graphene.relay.mutation import ClientIDMutation
 from graphene.types.mutation import MutationOptions
@@ -83,6 +87,19 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
         for field in sorted(list(model._meta.fields + model._meta.many_to_many))
     ]
 
+    # Only add the field as input field if the foreign key (reverse side)
+    # can be set to null, otherwise updates won't work.
+    fields.extend(
+        [
+            (field.related_name, field)
+            for field in sorted(
+                list(model._meta.related_objects),
+                key=lambda field: field.name,
+            )
+            if field.remote_field.null
+        ],
+    )
+
     ret = collections.OrderedDict()
     for name, field in fields:
         if ((only_fields and name not in only_fields) or
@@ -114,6 +131,14 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             ret[name] = graphene.List(
                 graphene.ID,
                 description=field.help_text,
+                required=not field.null,
+            )
+        elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
+            ret[name] = graphene.List(
+                graphene.ID,
+                description='Set list of {0}'.format(
+                    field.related_model._meta.verbose_name_plural,
+                ),
                 required=not field.null,
             )
         else:
@@ -504,7 +529,6 @@ class ModelMutation(BaseModelMutation):
         for f_name, f_item in cls.Input._meta.fields.items():
             if f_name not in data:
                 continue
-
             value = data[f_name]
 
             if value is not None and _is_list_of_ids(f_item):
@@ -547,11 +571,21 @@ class ModelMutation(BaseModelMutation):
         cls.save(info, instance, cleaned_input)
 
         # save m2m data
-        for f in itertools.chain(instance._meta.many_to_many,
-                                 instance._meta.private_fields):
+        for f in itertools.chain(
+            instance._meta.many_to_many,
+            instance._meta.related_objects,
+            instance._meta.private_fields,
+        ):
+
+            if isinstance(f, (ManyToOneRel, ManyToManyRel)):
+                # Handle reverse side relationships.
+                input_val = cleaned_input.get(f.related_name, None)
+                target_field = getattr(instance, f.related_name)
+                target_field.set(input_val or [])
+
             if not hasattr(f, 'save_form_data'):
                 continue
-
+            
             d = cleaned_input.get(f.name, None)
             if d is not None:
                 f.save_form_data(instance, d)

@@ -200,3 +200,160 @@ class TestTypes(BaseTestCase):
             op_name='issueDelete',
         )
         self.assertResponseHasErrors(r)
+
+
+class TestMutationRelatedObjects(BaseTestCase):
+    """Tests for creating and updating reverse side of FK and M2M relationships."""
+
+    def test_create_milestone_issues(self):
+        """Test that a milestone can be created with a list of issues."""
+        milestone = 'release_1A'
+        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+
+        project_id = base64.b64encode('ProjectType:{}'.format(
+            self.project.id,
+        ).encode()).decode()
+        issue_id = base64.b64encode('IssueType:{}'.format(
+            self.issues[0].id,
+        ).encode()).decode()
+
+        r = self.query(
+            """
+            mutation milestoneCreate {
+              milestoneCreate (input: {
+                name: "%s",
+                project: "%s",
+                issues: ["%s"]
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % (milestone, project_id, issue_id),
+            op_name='milestoneCreate',
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {
+                'milestoneCreate': {
+                  'milestone': {
+                    'name': 'release_1A',
+                    'issues': {
+                      'edges': [{
+                        'node': {
+                          'name': 'Issue 1'
+                        },
+                      }]
+                    }
+                  }
+                }
+              }
+            }
+        )
+        self.assertIsNotNone(Milestone.objects.filter(name=milestone).first())
+
+    def test_update_milestone_issues(self):
+        """Test that issues can be updated as a part of milestone update."""
+        milestone = Milestone.objects.create(name='release-A', project=self.project)
+        milestone.issues.set(self.issues)
+        m_id = base64.b64encode('MilestoneType:{}'.format(
+            milestone.id,
+        ).encode()).decode()
+
+        # Now update it to just having a single issue.
+        issue_id = base64.b64encode('IssueType:{}'.format(
+            self.issues[0].id,
+        ).encode()).decode()
+        r = self.query(
+            """
+            mutation milestoneUpdate {
+              milestoneUpdate (input: {
+                id: "%s",
+                issues: ["%s"]
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % (m_id, issue_id),
+            op_name='milestoneUpdate',
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {
+                'milestoneUpdate': {
+                  'milestone': {
+                    'name': 'release-A',
+                    'issues': {
+                      'edges': [{
+                        'node': {
+                          'name': 'Issue 1'
+                        },
+                      }]
+                    }
+                  }
+                }
+              }
+            }
+        )
+
+    def test_remove_all_milestone_issues(self):
+        """Test that all issues can be removed from a milestone."""
+        milestone = Milestone.objects.create(name='release-A', project=self.project)
+        milestone.issues.set(self.issues)
+        m_id = base64.b64encode('MilestoneType:{}'.format(
+            milestone.id,
+        ).encode()).decode()
+
+        r = self.query(
+            """
+            mutation milestoneUpdate {
+              milestoneUpdate (input: {
+                id: "%s",
+                issues: [],
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % m_id,
+            op_name='milestoneUpdate',
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {
+                'milestoneUpdate': {
+                  'milestone': {
+                    'name': 'release-A',
+                    'issues': {
+                      'edges': []
+                    }
+                  }
+                }
+              }
+            }
+        )
