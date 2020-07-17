@@ -14,7 +14,7 @@ def _read(fname):
 
 setup(
     name='graphene-django-plus',
-    version='2.3',
+    version='2.3.1',
     author='Zerosoft Tecnologia LTDA',
     author_email='admin@zerosoft.com.br',
     description='Tools to easily create permissioned CRUD endpoints in graphene.',
@@ -44,14 +44,10 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Framework :: Django',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
         'Framework :: Django :: 2.2',
         'Framework :: Django :: 3.0',
     ],
