@@ -581,16 +581,14 @@ class ModelMutation(BaseModelMutation):
         ):
             if isinstance(f, (ManyToOneRel, ManyToManyRel)):
                 # Handle reverse side relationships.
-                input_val = cleaned_input.get(f.related_name, None)
-                target_field = getattr(instance, f.related_name)
-                target_field.set(input_val or [])
-
-            if not hasattr(f, 'save_form_data'):
-                continue
-
-            d = cleaned_input.get(f.name, None)
-            if d is not None:
-                f.save_form_data(instance, d)
+                d = cleaned_input.get(f.related_name, None)
+                if d is not None:
+                    target_field = getattr(instance, f.related_name)
+                    target_field.set(d)
+            elif hasattr(f, 'save_form_data'):
+                d = cleaned_input.get(f.name, None)
+                if d is not None:
+                    f.save_form_data(instance, d)
 
         if not checked_permissions:
             # If we did not check permissions when getting the instance,

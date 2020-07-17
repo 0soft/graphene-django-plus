@@ -313,6 +313,46 @@ class TestMutationRelatedObjects(BaseTestCase):
             }
         )
 
+        # If we update this once again without "issues" them should not be touched
+        r = self.query(
+            """
+            mutation milestoneUpdate {
+              milestoneUpdate (input: {
+                id: "%s",
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % (m_id, ),
+            op_name='milestoneUpdate',
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {
+                'milestoneUpdate': {
+                    'milestone': {
+                        'name': 'release-A',
+                        'issues': {
+                            'edges': [{
+                                'node': {
+                                    'name': 'Issue 1'
+                                },
+                            }]
+                        }
+                    }
+                }
+            }}
+        )
+
     def test_remove_all_milestone_issues(self):
         """Test that all issues can be removed from a milestone."""
         milestone = Milestone.objects.create(name='release-A', project=self.project)
