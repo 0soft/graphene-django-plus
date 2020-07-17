@@ -20,11 +20,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tests.settings')
 # -- Project information -----------------------------------------------------
 
 project = 'graphene-django-plus'
-copyright = '2019, Zerosoft Tecnologia LTDA'
+copyright = '2019-2020, Zerosoft Tecnologia LTDA'
 author = 'Zerosoft Tecnologia LTDA'
 
 # The full version, including alpha/beta/rc tags
-release = '2.2.3'
+release = '2.3'
 
 
 # -- General configuration ---------------------------------------------------
