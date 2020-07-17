@@ -57,7 +57,10 @@ def _get_output_fields(model, return_field_name):
                 model.__name__,
             )
         )
-    f = graphene.Field(model_type, description="The mutated object.")
+    f = graphene.Field(
+        lambda: _registry.get_type_for_model(model),
+        description="The mutated object.",
+    )
     return {return_field_name: f}
 
 
@@ -576,7 +579,6 @@ class ModelMutation(BaseModelMutation):
             instance._meta.related_objects,
             instance._meta.private_fields,
         ):
-
             if isinstance(f, (ManyToOneRel, ManyToManyRel)):
                 # Handle reverse side relationships.
                 input_val = cleaned_input.get(f.related_name, None)
