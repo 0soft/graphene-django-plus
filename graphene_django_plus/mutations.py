@@ -118,23 +118,19 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
         elif isinstance(field, models.FileField):
             ret[name] = UploadType(
                 description=field.help_text,
-                required=not field.null,
             )
         elif isinstance(field, models.BooleanField):
             ret[name] = graphene.Boolean(
                 description=field.help_text,
-                required=not field.null and not field.blank,
             )
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
             ret[name] = graphene.ID(
                 description=field.help_text,
-                required=not field.null,
             )
         elif isinstance(field, models.ManyToManyField):
             ret[name] = graphene.List(
                 graphene.ID,
                 description=field.help_text,
-                required=not field.null,
             )
         elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
             ret[name] = graphene.List(
@@ -142,13 +138,17 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 description='Set list of {0}'.format(
                     field.related_model._meta.verbose_name_plural,
                 ),
-                required=not field.null,
             )
         else:
             ret[name] = convert_django_field_with_choices(field, _registry)
 
         if required_fields is not None:
             ret[name].kwargs['required'] = name in required_fields
+        else:
+            if isinstance(field, (ManyToOneRel, ManyToManyRel)):
+                ret[name].kwargs['required'] = not field.null
+            else:
+                ret[name].kwargs['required'] = not field.blank
 
     return ret
 
