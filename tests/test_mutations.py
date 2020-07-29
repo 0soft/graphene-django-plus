@@ -5,7 +5,6 @@ from django.test.utils import override_settings
 import graphene
 from graphql_relay import to_global_id
 from graphene_django_plus.mutations import ModelCreateMutation
-from tests.schema import MilestoneCommentType, IssueType, ProjectType
 
 from .base import BaseTestCase
 from .models import (
@@ -14,6 +13,7 @@ from .models import (
     Issue,
     MilestoneComment,
 )
+from .schema import MilestoneCommentType, IssueType, ProjectType
 
 
 class TestTypes(BaseTestCase):
