@@ -414,7 +414,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
         """Test that a milestone can be created with a list of issues."""
 
         milestone = 'release_1A'
-        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
+        self.assertFalse(Milestone.objects.filter(name=milestone).exists())
 
         project_id = to_global_id(ProjectType.__name__, self.project.id)
         issue_id = to_global_id(IssueType.__name__, self.issues[0].id)
@@ -452,7 +452,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             }
             """ % (milestone, project_id, issue_id)
         result = schema.execute(query)
-        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
+        self.assertFalse(Milestone.objects.filter(name=milestone).exists())
         self.assertTrue('Unknown field.' in result.errors[0].message)
 
     def test_create_milestone_issues_with_comments_without_related_name(self):
@@ -462,7 +462,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
         )
 
         milestone = 'release_1A'
-        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
+        self.assertFalse(Milestone.objects.filter(name=milestone).exists())
 
         project_id = to_global_id(ProjectType.__name__, self.project.id)
         issue_id = to_global_id(IssueType.__name__, self.issues[0].id)
@@ -499,7 +499,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             """ % (milestone, project_id, issue_id, comment_id),
             op_name='milestoneCreate',
         )
-        self.assertIsNotNone(Milestone.objects.filter(name=milestone).exists())
+        self.assertTrue(Milestone.objects.filter(name=milestone).exists())
         self.assertEqual(
             json.loads(r.content),
             {'data': {

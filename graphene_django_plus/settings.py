@@ -8,9 +8,6 @@ This module provides the `graphene_django_plus_settings` object, that is used to
 graphene-django-plus settings, checking for user settings first, then falling
 back to the defaults.
 """
-from __future__ import unicode_literals
-
-import six
 from django.conf import settings
 from django.test.signals import setting_changed
 
@@ -34,7 +31,7 @@ def perform_import(val, setting_name):
     """
     if val is None:
         return None
-    elif isinstance(val, six.string_types):
+    elif isinstance(val, str):
         return import_from_string(val, setting_name)
     elif isinstance(val, (list, tuple)):
         return [import_from_string(item, setting_name) for item in val]
