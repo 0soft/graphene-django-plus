@@ -16,6 +16,7 @@ from .models import (
     Project,
     Milestone,
     Issue,
+    MilestoneComment,
 )
 
 # Types
@@ -43,6 +44,14 @@ class MilestoneType(ModelType):
 class ProjectType(ModelType):
     class Meta:
         model = Project
+        connection_class = CountableConnection
+        interfaces = [relay.Node]
+        filter_fields = {}
+
+
+class MilestoneCommentType(ModelType):
+    class Meta:
+        model = MilestoneComment
         connection_class = CountableConnection
         interfaces = [relay.Node]
         filter_fields = {}
