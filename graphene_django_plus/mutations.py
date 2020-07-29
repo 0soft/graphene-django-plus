@@ -103,7 +103,6 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             if not isinstance(field, ManyToOneRel) or field.remote_field.null
         ],
     )
-    print(fields)
 
     ret = collections.OrderedDict()
     for name, field in fields:
@@ -135,9 +134,9 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 description=field.help_text,
             )
         elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
-            reverse_relations_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
-            # Explicitly checking whether it was globally configured to not include reverse relations
-            if isinstance(field, ManyToOneRel) and not reverse_relations_include and not only_fields:
+            reverse_rel_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
+            # Checking whether it was globally configured to not include reverse relations
+            if isinstance(field, ManyToOneRel) and not reverse_rel_include and not only_fields:
                 continue
 
             ret[name] = graphene.List(
