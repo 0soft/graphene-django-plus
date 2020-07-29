@@ -56,3 +56,17 @@ class Issue(GuardedModel):
         default=None,
         on_delete=models.SET_NULL,
     )
+
+
+class MilestoneComment(models.Model):
+
+    text = models.CharField(
+        max_length=255,
+    )
+    milestone = models.ForeignKey(
+        Milestone,
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
+    )

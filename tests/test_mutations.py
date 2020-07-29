@@ -1,11 +1,16 @@
 import base64
 import json
 
+from django.test.utils import override_settings
+import graphene
+from graphene_django_plus.mutations import ModelCreateMutation
+
 from .base import BaseTestCase
 from .models import (
     Project,
     Milestone,
     Issue,
+    MilestoneComment,
 )
 
 
@@ -392,6 +397,138 @@ class TestMutationRelatedObjects(BaseTestCase):
                         'issues': {
                             'edges': []
                         }
+                    }
+                }
+            }
+            }
+        )
+
+
+class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
+    """Tests for creating and updating reverse side of FK and M2M relationships."""
+
+    @override_settings(GRAPHENE_DJANGO_PLUS={'MUTATIONS_INCLUDE_REVERSE_RELATIONS': False})
+    def test_create_milestone_issues_turned_off_related_setting(self):
+        """Test that a milestone can be created with a list of issues."""
+
+        milestone = 'release_1A'
+        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+
+        project_id = base64.b64encode('ProjectType:{}'.format(
+            self.project.id,
+        ).encode()).decode()
+        issue_id = base64.b64encode('IssueType:{}'.format(
+            self.issues[0].id,
+        ).encode()).decode()
+
+        # Creating schema inside test run so that settings would be already modified
+        # since schema is generated on server start, not no execution
+        class MilestoneCreateMutation(ModelCreateMutation):
+            class Meta:
+                model = Milestone
+
+        class Mutation(graphene.ObjectType):
+            milestone_create = MilestoneCreateMutation.Field()
+
+        schema = graphene.Schema(
+            mutation=Mutation,
+        )
+        query = """
+            mutation milestoneCreate {
+              milestoneCreate (input: {
+                name: "%s",
+                project: "%s",
+                issues: ["%s"]
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % (milestone, project_id, issue_id)
+        result = schema.execute(query)
+        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+        self.assertTrue('Unknown field.' in result.errors[0].message)
+
+    def test_create_milestone_issues_with_comments_without_related_name(self):
+        comment = MilestoneComment.objects.create(
+            text="Milestone Comment",
+            milestone=self.milestone_1,
+        )
+
+        milestone = 'release_1A'
+        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+
+        project_id = base64.b64encode('ProjectType:{}'.format(
+            self.project.id,
+        ).encode()).decode()
+        issue_id = base64.b64encode('IssueType:{}'.format(
+            self.issues[0].id,
+        ).encode()).decode()
+
+        comment_id = base64.b64encode('MilestoneCommentType:{}'.format(
+            comment.id,
+        ).encode()).decode()
+
+        r = self.query(
+            """
+            mutation milestoneCreate {
+              milestoneCreate (input: {
+                name: "%s",
+                project: "%s",
+                issues: ["%s"],
+                milestonecommentSet: ["%s"],
+              }) {
+                milestone {
+                  name
+                  issues {
+                    edges {
+                      node {
+                        name
+                      }
+                    }
+                  }
+                  milestonecommentSet {
+                    edges {
+                      node {
+                        text
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """ % (milestone, project_id, issue_id, comment_id),
+            op_name='milestoneCreate',
+        )
+        self.assertIsNotNone(Milestone.objects.filter(name=milestone).first())
+        self.assertEqual(
+            json.loads(r.content),
+            {'data': {
+                'milestoneCreate': {
+                    'milestone': {
+                        'name': 'release_1A',
+                        'issues': {
+                            'edges': [{
+                                'node': {
+                                    'name': 'Issue 1'
+                                },
+                            }]
+                        },
+                        'milestonecommentSet': {
+                            'edges': [{
+                                'node': {
+                                    'text': 'Milestone Comment'
+                                },
+                            }]
+                        },
                     }
                 }
             }
