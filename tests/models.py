@@ -67,6 +67,5 @@ class MilestoneComment(models.Model):
         Milestone,
         null=True,
         blank=True,
-        default=None,
         on_delete=models.SET_NULL,
     )

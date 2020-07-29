@@ -3,7 +3,9 @@ import json
 
 from django.test.utils import override_settings
 import graphene
+from graphql_relay import to_global_id
 from graphene_django_plus.mutations import ModelCreateMutation
+from tests.schema import MilestoneCommentType, IssueType, ProjectType
 
 from .base import BaseTestCase
 from .models import (
@@ -412,17 +414,13 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
         """Test that a milestone can be created with a list of issues."""
 
         milestone = 'release_1A'
-        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
 
-        project_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
-        issue_id = base64.b64encode('IssueType:{}'.format(
-            self.issues[0].id,
-        ).encode()).decode()
+        project_id = to_global_id(ProjectType.__name__, self.project.id)
+        issue_id = to_global_id(IssueType.__name__, self.issues[0].id)
 
         # Creating schema inside test run so that settings would be already modified
-        # since schema is generated on server start, not no execution
+        # since schema is generated on server start, not on execution
         class MilestoneCreateMutation(ModelCreateMutation):
             class Meta:
                 model = Milestone
@@ -454,7 +452,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             }
             """ % (milestone, project_id, issue_id)
         result = schema.execute(query)
-        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
         self.assertTrue('Unknown field.' in result.errors[0].message)
 
     def test_create_milestone_issues_with_comments_without_related_name(self):
@@ -464,18 +462,11 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
         )
 
         milestone = 'release_1A'
-        self.assertIsNone(Milestone.objects.filter(name=milestone).first())
+        self.assertIsNone(Milestone.objects.filter(name=milestone).exists())
 
-        project_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
-        issue_id = base64.b64encode('IssueType:{}'.format(
-            self.issues[0].id,
-        ).encode()).decode()
-
-        comment_id = base64.b64encode('MilestoneCommentType:{}'.format(
-            comment.id,
-        ).encode()).decode()
+        project_id = to_global_id(ProjectType.__name__, self.project.id)
+        issue_id = to_global_id(IssueType.__name__, self.issues[0].id)
+        comment_id = to_global_id(MilestoneCommentType.__name__, comment.id)
 
         r = self.query(
             """
@@ -508,7 +499,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             """ % (milestone, project_id, issue_id, comment_id),
             op_name='milestoneCreate',
         )
-        self.assertIsNotNone(Milestone.objects.filter(name=milestone).first())
+        self.assertIsNotNone(Milestone.objects.filter(name=milestone).exists())
         self.assertEqual(
             json.loads(r.content),
             {'data': {

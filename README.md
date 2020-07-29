@@ -169,7 +169,7 @@ query {
 
 Here is an example describing how to use those:
 
-```py
+```
 import graphene
 from graphene import relay
 
