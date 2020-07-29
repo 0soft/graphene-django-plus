@@ -292,6 +292,15 @@ mutation {
 
 Any validation errors will be presented in the `errors` return value.
 
+To turn off auto related relations addition to the mutation input - set global `MUTATIONS_INCLUDE_REVERSE_RELATIONS` parameter to `False` in your `settings.py`:
+```
+GRAPHENE_DJANGO_PLUS = {
+    'MUTATIONS_INCLUDE_REVERSE_RELATIONS': False
+}
+```
+
+Note: in case reverse relation does not have `related_name` attribute set - mutation input will be generated as Django itself is generating by appending `_set` to the lower cased model name - `modelname_set`
+
 ## License
 
 This project is licensed under MIT licence (see `LICENSE` for more info)
