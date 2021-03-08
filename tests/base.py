@@ -19,7 +19,7 @@ class BaseTestCase(GraphQLTestCase):
         self.user = User(username='foobar')
         self.user.set_password('foobar')
         self.user.save()
-        self._client.login(username='foobar', password='foobar')
+        self.client.login(username='foobar', password='foobar')
 
         self.project = Project.objects.create(
             name="Test Project",
