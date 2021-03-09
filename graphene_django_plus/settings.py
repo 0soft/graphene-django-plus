@@ -85,8 +85,8 @@ class GrapheneDjangoPlusSettings(object):
         for attr in self._cached_attrs:
             delattr(self, attr)
         self._cached_attrs.clear()
-        if hasattr(self, '_user_settings'):
-            delattr(self, '_user_settings')
+        if hasattr(self, "_user_settings"):
+            delattr(self, "_user_settings")
 
     def __getattr__(self, attr):
         if attr not in self.defaults:
@@ -109,7 +109,9 @@ class GrapheneDjangoPlusSettings(object):
         return val
 
 
-graphene_django_plus_settings = GrapheneDjangoPlusSettings(None, DEFAULTS, IMPORT_STRINGS)
+graphene_django_plus_settings = GrapheneDjangoPlusSettings(
+    None, DEFAULTS, IMPORT_STRINGS
+)
 
 
 def reload_graphene_django_plus_settings(*args, **kwargs):

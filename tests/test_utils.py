@@ -9,12 +9,13 @@ from .schema import (
 
 
 class TestTypes(BaseTestCase):
-
     def test_get_nodes(self):
         issues = [
-            base64.b64encode('IssueType:{}'.format(
-                issue.id,
-            ).encode()).decode()
+            base64.b64encode(
+                "IssueType:{}".format(
+                    issue.id,
+                ).encode()
+            ).decode()
             for issue in self.issues
         ]
         self.assertEqual(
@@ -30,7 +31,7 @@ class TestTypes(BaseTestCase):
 
         issues_with_wrong_id = issues[:]
         issues_with_wrong_id.append(
-            base64.b64encode('IssueType:9999'.encode()).decode()
+            base64.b64encode("IssueType:9999".encode()).decode()
         )
         with self.assertRaises(AssertionError):
             get_nodes(issues_with_wrong_id)

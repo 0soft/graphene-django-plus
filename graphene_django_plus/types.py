@@ -6,6 +6,7 @@ from graphene_django.types import DjangoObjectTypeOptions
 
 try:
     import graphene_django_optimizer as gql_optimizer
+
     _BaseDjangoObjectType = gql_optimizer.OptimizedDjangoObjectType
 except ImportError:
     gql_optimizer = None
@@ -28,8 +29,10 @@ class MutationErrorType(graphene.ObjectType):
     #: The field that caused the error, or `null` if it isn't associated
     #: with any particular field.
     field = graphene.String(
-        description=("The field that caused the error, or `null` if it "
-                     "isn't associated with any particular field."),
+        description=(
+            "The field that caused the error, or `null` if it "
+            "isn't associated with any particular field."
+        ),
         required=False,
     )
 
@@ -88,14 +91,18 @@ class ModelType(_BaseDjangoObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, _meta=None, model=None,
-                                    permissions=None,
-                                    permissions_any=True,
-                                    object_permissions=None,
-                                    object_permissions_any=True,
-                                    allow_unauthenticated=False,
-                                    prefetch=None,
-                                    **kwargs):
+    def __init_subclass_with_meta__(
+        cls,
+        _meta=None,
+        model=None,
+        permissions=None,
+        permissions_any=True,
+        object_permissions=None,
+        object_permissions_any=True,
+        allow_unauthenticated=False,
+        prefetch=None,
+        **kwargs
+    ):
         if not _meta:
             _meta = DjangoObjectTypeOptions(cls)
 
@@ -123,8 +130,9 @@ class ModelType(_BaseDjangoObjectType):
         if isinstance(qs, models.Manager):
             qs = qs.get_queryset()
 
-        if (cls._meta.object_permissions and
-                isinstance(cls._meta.model.objects, GuardedModelManager)):
+        if cls._meta.object_permissions and isinstance(
+            cls._meta.model.objects, GuardedModelManager
+        ):
             qs &= cls._meta.model.objects.for_user(
                 info.context.user,
                 cls._meta.object_permissions,
@@ -136,8 +144,10 @@ class ModelType(_BaseDjangoObjectType):
             return ret
 
         ret = gql_optimizer.query(ret, info)
-        prl = {i.to_attr if isinstance(i, Prefetch) else i: i
-               for i in ret._prefetch_related_lookups}
+        prl = {
+            i.to_attr if isinstance(i, Prefetch) else i: i
+            for i in ret._prefetch_related_lookups
+        }
         ret._prefetch_related_lookups = tuple(prl.values())
 
         return ret
@@ -160,8 +170,9 @@ class ModelType(_BaseDjangoObjectType):
         else:
             instance = super().get_node(info, id)
 
-        if (instance is not None and
-                not cls.check_object_permissions(info.context.user, instance)):
+        if instance is not None and not cls.check_object_permissions(
+            info.context.user, instance
+        ):
             raise PermissionDenied("No permissions")
 
         return instance
@@ -179,8 +190,9 @@ class ModelType(_BaseDjangoObjectType):
         if not cls._meta.permissions:
             return True
 
-        return check_perms(user, cls._meta.permissions,
-                           any_perm=cls._meta.permissions_any)
+        return check_perms(
+            user, cls._meta.permissions, any_perm=cls._meta.permissions_any
+        )
 
     @classmethod
     def check_object_permissions(cls, user, instance):

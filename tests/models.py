@@ -27,30 +27,42 @@ class Milestone(models.Model):
     )
     project = models.ForeignKey(
         Project,
-        related_name='milestones',
-        related_query_name='milestone',
+        related_name="milestones",
+        related_query_name="milestone",
         on_delete=models.CASCADE,
     )
 
 
 class Issue(GuardedModel):
-
     class Meta:
         permissions = [
-            ('can_read', "Can read the issue's information."),
-            ('can_write', "Can update the issue's information."),
+            ("can_read", "Can read the issue's information."),
+            ("can_write", "Can update the issue's information."),
         ]
+
+    units = {
+        "un": "un",
+        "g": "grams",
+    }
 
     name = models.CharField(
         max_length=255,
+    )
+    unit = models.CharField(
+        verbose_name="quantity",
+        help_text="the quantity",
+        max_length=max(len(t) for t in units),
+        choices=list(units.items()),
+        default="un",
+        blank=True,
     )
     priority = models.IntegerField(
         default=0,
     )
     milestone = models.ForeignKey(
         Milestone,
-        related_name='issues',
-        related_query_name='issue',
+        related_name="issues",
+        related_query_name="issue",
         null=True,
         blank=True,
         default=None,

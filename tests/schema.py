@@ -28,7 +28,7 @@ class IssueType(ModelType):
         connection_class = CountableConnection
         interfaces = [relay.Node]
         object_permissions = [
-            'can_read',
+            "can_read",
         ]
         filter_fields = {}
 
@@ -113,7 +113,7 @@ class IssueUpdateMutation(ModelUpdateMutation):
     class Meta:
         model = Issue
         object_permissions = [
-            'can_write',
+            "can_write",
         ]
 
 
@@ -121,7 +121,7 @@ class IssueDeleteMutation(ModelDeleteMutation):
     class Meta:
         model = Issue
         object_permissions = [
-            'can_write',
+            "can_write",
         ]
 
 

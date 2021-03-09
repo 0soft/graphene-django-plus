@@ -32,9 +32,7 @@ def _resolve_nodes(ids, graphene_type=None):
 
         if used_type:
             if str(used_type) != node_type:
-                raise AssertionError(
-                    "Must receive a {} id.".format(str(used_type))
-                )
+                raise AssertionError("Must receive a {} id.".format(str(used_type)))
 
         used_type = node_type
         pks.append(_id)
@@ -50,8 +48,9 @@ def _resolve_nodes(ids, graphene_type=None):
 
 
 def _resolve_graphene_type(type_name):
-    for _, _type in itertools.chain(_extra_register.items(),
-                                    _registry._registry.items()):
+    for _, _type in itertools.chain(
+        _extra_register.items(), _registry._registry.items()
+    ):
         if _type._meta.name == type_name:
             return _type
     else:  # pragma: no cover
@@ -65,7 +64,9 @@ def _get_input_attrs(object_type):
         if not isinstance(value, (MountedType, UnmountedType)):
             continue
 
-        if isinstance(value, Structure) and issubclass(value.of_type, graphene.ObjectType):
+        if isinstance(value, Structure) and issubclass(
+            value.of_type, graphene.ObjectType
+        ):
             value = type(value)(_input_registry[value.of_type])
         elif isinstance(value, graphene.ObjectType):
             value = _input_registry[value.of_type]
@@ -138,7 +139,7 @@ def get_inputtype(name, object_type):
 
     inputtype = type(
         name,
-        (graphene.InputObjectType, ),
+        (graphene.InputObjectType,),
         _get_input_attrs(object_type),
     )
 

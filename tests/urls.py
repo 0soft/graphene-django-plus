@@ -5,5 +5,5 @@ from .schema import schema
 
 
 urlpatterns = [
-    re_path(r'^graphql', GraphQLView.as_view(graphiql=True, schema=schema)),
+    re_path(r"^graphql", GraphQLView.as_view(graphiql=True, schema=schema)),
 ]

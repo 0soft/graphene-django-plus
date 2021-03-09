@@ -106,13 +106,15 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
 
     ret = collections.OrderedDict()
     for name, field in fields:
-        if ((only_fields and name not in only_fields) or
-                name in exclude_fields or
-                str(name).endswith('+') or
-                name in ['created_at', 'updated_at', 'archived_at']):
+        if (
+            (only_fields and name not in only_fields)
+            or name in exclude_fields
+            or str(name).endswith("+")
+            or name in ["created_at", "updated_at", "archived_at"]
+        ):
             continue
 
-        if name == 'id':
+        if name == "id":
             ret[name] = graphene.ID(
                 description="The ID of the object.",
             )
@@ -134,14 +136,20 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 description=field.help_text,
             )
         elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
-            reverse_rel_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
+            reverse_rel_include = (
+                graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
+            )
             # Checking whether it was globally configured to not include reverse relations
-            if isinstance(field, ManyToOneRel) and not reverse_rel_include and not only_fields:
+            if (
+                isinstance(field, ManyToOneRel)
+                and not reverse_rel_include
+                and not only_fields
+            ):
                 continue
 
             ret[name] = graphene.List(
                 graphene.ID,
-                description='Set list of {0}'.format(
+                description="Set list of {0}".format(
                     field.related_model._meta.verbose_name_plural,
                 ),
             )
@@ -149,33 +157,30 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             ret[name] = convert_django_field_with_choices(field, _registry)
 
         if required_fields is not None:
-            ret[name].kwargs['required'] = name in required_fields
+            ret[name].kwargs["required"] = name in required_fields
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
-                ret[name].kwargs['required'] = not field.null
+                ret[name].kwargs["required"] = not field.null
             else:
-                ret[name].kwargs['required'] = not field.blank
+                ret[name].kwargs["required"] = not field.blank
 
     return ret
 
 
 def _is_list_of_ids(field):
-    return (
-        isinstance(field.type, graphene.List) and
-        field.type.of_type == graphene.ID
-    )
+    return isinstance(field.type, graphene.List) and field.type.of_type == graphene.ID
 
 
 def _is_id_field(field):
     return (
-        field.type == graphene.ID or
-        isinstance(field.type, graphene.NonNull) and
-        field.type.of_type == graphene.ID
+        field.type == graphene.ID
+        or isinstance(field.type, graphene.NonNull)
+        and field.type.of_type == graphene.ID
     )
 
 
 def _is_upload_field(field):
-    t = getattr(field.type, 'of_type', field.type)
+    t = getattr(field.type, "of_type", field.type)
     return t == UploadType
 
 
@@ -205,10 +210,14 @@ class BaseMutation(ClientIDMutation):
     )
 
     @classmethod
-    def __init_subclass_with_meta__(cls, permissions=None,
-                                    permissions_any=True,
-                                    allow_unauthenticated=False,
-                                    _meta=None, **kwargs):
+    def __init_subclass_with_meta__(
+        cls,
+        permissions=None,
+        permissions_any=True,
+        allow_unauthenticated=False,
+        _meta=None,
+        **kwargs
+    ):
         if not _meta:
             _meta = BaseMutationOptions(cls)
 
@@ -219,7 +228,7 @@ class BaseMutation(ClientIDMutation):
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
     @classmethod
-    def get_node(cls, info, node_id, field='id', only_type=None):
+    def get_node(cls, info, node_id, field="id", only_type=None):
         """Get the node object given a relay global id."""
         if not node_id:
             return None
@@ -259,8 +268,9 @@ class BaseMutation(ClientIDMutation):
         if not cls._meta.permissions:
             return True
 
-        return check_perms(user, cls._meta.permissions,
-                           any_perm=cls._meta.permissions_any)
+        return check_perms(
+            user, cls._meta.permissions, any_perm=cls._meta.permissions_any
+        )
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **data):
@@ -334,13 +344,18 @@ class BaseModelMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, model=None,
-                                    object_permissions=None,
-                                    object_permissions_any=True,
-                                    return_field_name=None,
-                                    required_fields=None,
-                                    exclude_fields=None, only_fields=None,
-                                    _meta=None, **kwargs):
+    def __init_subclass_with_meta__(
+        cls,
+        model=None,
+        object_permissions=None,
+        object_permissions_any=True,
+        return_field_name=None,
+        required_fields=None,
+        exclude_fields=None,
+        only_fields=None,
+        _meta=None,
+        **kwargs
+    ):
         if not model:  # pragma: no cover
             raise ImproperlyConfigured("model is required for ModelMutation")
         if not _meta:
@@ -351,8 +366,7 @@ class BaseModelMutation(BaseMutation):
         if not return_field_name:
             return_field_name = _get_model_name(model)
 
-        input_fields = _get_fields(model, only_fields, exclude_fields,
-                                   required_fields)
+        input_fields = _get_fields(model, only_fields, exclude_fields, required_fields)
         input_fields = yank_fields_from_attrs(input_fields, _as=graphene.InputField)
 
         fields = _get_output_fields(model, return_field_name)
@@ -477,8 +491,8 @@ class ModelOperationMutation(BaseModelMutation):
     @classmethod
     def __init_subclass_with_meta__(cls, **kwargs):
         super().__init_subclass_with_meta__(
-            only_fields=['id'],
-            required_fields=['id'],
+            only_fields=["id"],
+            required_fields=["id"],
             **kwargs,
         )
 
@@ -499,9 +513,11 @@ class ModelMutation(BaseModelMutation):
         opts = instance._meta
 
         for f in opts.fields:
-            if (not f.editable or
-                    isinstance(f, models.AutoField) or
-                    f.name not in cleaned_data):
+            if (
+                not f.editable
+                or isinstance(f, models.AutoField)
+                or f.name not in cleaned_data
+            ):
                 continue
 
             data = cleaned_data[f.name]
@@ -566,7 +582,7 @@ class ModelMutation(BaseModelMutation):
         Create or update the instance, based on the existence of the
         `id` attribute in the input data and save it.
         """
-        obj_id = data.get('id')
+        obj_id = data.get("id")
         if obj_id:
             checked_permissions = True
             instance = cls.get_instance(info, obj_id)
@@ -591,7 +607,7 @@ class ModelMutation(BaseModelMutation):
                 if d is not None:
                     target_field = getattr(instance, f.related_name or f.name + "_set")
                     target_field.set(d)
-            elif hasattr(f, 'save_form_data'):
+            elif hasattr(f, "save_form_data"):
                 d = cleaned_input.get(f.name, None)
                 if d is not None:
                     f.save_form_data(instance, d)
@@ -618,9 +634,9 @@ class ModelCreateMutation(ModelMutation):
 
     @classmethod
     def __init_subclass_with_meta__(cls, **kwargs):
-        exclude_fields = kwargs.pop('exclude_fields', []) or []
-        if 'id' not in exclude_fields:
-            exclude_fields.append('id')
+        exclude_fields = kwargs.pop("exclude_fields", []) or []
+        if "id" not in exclude_fields:
+            exclude_fields.append("id")
         super().__init_subclass_with_meta__(
             exclude_fields=exclude_fields,
             **kwargs,
@@ -639,11 +655,11 @@ class ModelUpdateMutation(ModelMutation):
 
     @classmethod
     def __init_subclass_with_meta__(cls, **kwargs):
-        if 'only_fields' in kwargs and 'id' not in kwargs['only_fields']:
-            kwargs['only_fields'].insert(0, 'id')
-        required_fields = kwargs.pop('required_fields', []) or []
-        if 'id' not in required_fields:
-            required_fields.insert(0, 'id')
+        if "only_fields" in kwargs and "id" not in kwargs["only_fields"]:
+            kwargs["only_fields"].insert(0, "id")
+        required_fields = kwargs.pop("required_fields", []) or []
+        if "id" not in required_fields:
+            required_fields.insert(0, "id")
         super().__init_subclass_with_meta__(
             required_fields=required_fields,
             **kwargs,
@@ -664,7 +680,7 @@ class ModelDeleteMutation(ModelOperationMutation):
         Delete the instance from the database given its `id` attribute
         in the input data.
         """
-        instance = cls.get_instance(info, data.get('id'))
+        instance = cls.get_instance(info, data.get("id"))
 
         db_id = instance.id
         cls.delete(info, instance)

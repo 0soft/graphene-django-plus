@@ -1,6 +1,7 @@
 try:
     from guardian.core import ObjectPermissionChecker
     from guardian.shortcuts import get_objects_for_user
+
     has_guardian = True
 except ImportError:  # pragma: no cover
     has_guardian = False

@@ -16,7 +16,7 @@ class CountableConnection(relay.Connection):
     )
 
     def resolve_total_count(root, info, **kwargs):
-        if hasattr(root, 'length'):
+        if hasattr(root, "length"):
             return root.length
 
         return root.iterable.count()
@@ -37,8 +37,9 @@ class OrderableConnectionField(DjangoFilterConnectionField):
         )
 
     @classmethod
-    def resolve_queryset(cls, connection, iterable, info, args,
-                         filtering_args, filterset_class):
+    def resolve_queryset(
+        cls, connection, iterable, info, args, filtering_args, filterset_class
+    ):
         qs = super().resolve_queryset(
             connection,
             iterable,
@@ -48,7 +49,7 @@ class OrderableConnectionField(DjangoFilterConnectionField):
             filterset_class,
         )
 
-        order = args.pop('orderby', None) or []
+        order = args.pop("orderby", None) or []
         if order:
             qs = qs.order_by(*[to_snake_case(o) for o in order])
 

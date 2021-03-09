@@ -65,9 +65,9 @@ class GraphQLView(_GraphQLView):
         )
 
         content_type = _GraphQLView.get_content_type(request)
-        if content_type == 'multipart/form-data':
-            operations = json.loads(data.get('operations', "{}"))
-            files_map = json.loads(data.get('map', '{}'))
+        if content_type == "multipart/form-data":
+            operations = json.loads(data.get("operations", "{}"))
+            files_map = json.loads(data.get("map", "{}"))
             for k, v in files_map.items():
                 for f in v:
                     _obj_set(operations, f, k)
