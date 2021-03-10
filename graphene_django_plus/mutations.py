@@ -2,6 +2,7 @@
 # but adapted to use relay, automatic field detection and some code adjustments
 
 import collections
+import collections.abc
 import itertools
 
 from django.core.exceptions import (
@@ -22,12 +23,16 @@ from graphene.relay.mutation import ClientIDMutation
 from graphene.types.mutation import MutationOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.registry import get_global_registry
-from graphene_django.converter import convert_django_field_with_choices
+from graphene_django.converter import (
+    convert_django_field_with_choices,
+    get_choices,
+)
 from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
 from .models import GuardedModel
+from .schema import get_field_schema
 from .types import (
     MutationErrorType,
     UploadType,
@@ -43,6 +48,17 @@ from .utils import (
 )
 
 _registry = get_global_registry()
+input_schema_registry = {}
+
+
+def _update_dict_nested(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = _update_dict_nested(d.get(k, {}), v)
+        else:
+            d[k] = v
+
+    return d
 
 
 def _get_model_name(model):
@@ -115,23 +131,23 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             continue
 
         if name == "id":
-            ret[name] = graphene.ID(
+            f = graphene.ID(
                 description="The ID of the object.",
             )
         elif isinstance(field, models.FileField):
-            ret[name] = UploadType(
+            f = UploadType(
                 description=field.help_text,
             )
         elif isinstance(field, models.BooleanField):
-            ret[name] = graphene.Boolean(
+            f = graphene.Boolean(
                 description=field.help_text,
             )
         elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
-            ret[name] = graphene.ID(
+            f = graphene.ID(
                 description=field.help_text,
             )
         elif isinstance(field, models.ManyToManyField):
-            ret[name] = graphene.List(
+            f = graphene.List(
                 graphene.ID,
                 description=field.help_text,
             )
@@ -147,22 +163,56 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             ):
                 continue
 
-            ret[name] = graphene.List(
+            f = graphene.List(
                 graphene.ID,
                 description="Set list of {0}".format(
                     field.related_model._meta.verbose_name_plural,
                 ),
             )
         else:
-            ret[name] = convert_django_field_with_choices(field, _registry)
+            f = convert_django_field_with_choices(field, _registry)
 
         if required_fields is not None:
-            ret[name].kwargs["required"] = name in required_fields
+            f.kwargs["required"] = name in required_fields
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
-                ret[name].kwargs["required"] = not field.null
+                f.kwargs["required"] = not field.null
             else:
-                ret[name].kwargs["required"] = not field.blank
+                f.kwargs["required"] = not field.blank
+
+        if getattr(field, "choices", None):
+            items = field.choices
+            if isinstance(items, dict):
+                items = items.items()
+
+            choices = []
+            for (original_v, label), (n, value, desc) in zip(items, get_choices(items)):
+                choices.append(
+                    {
+                        "label": label,
+                        "name": n,
+                        "value": value,
+                    }
+                )
+        else:
+            choices = None
+
+        s = get_field_schema(field)
+        s.update(
+            {
+                "field": name,
+                # FIXME: Get verbose_name and help_text for m2m
+                "verbose_name": getattr(field, "verbose_name", None),
+                "help_text": getattr(field, "help_text", None),
+                "max_length": getattr(field, "max_length", None),
+                "choices": choices,
+            }
+        )
+
+        ret[name] = {
+            "field": f,
+            "schema": s,
+        }
 
     return ret
 
@@ -196,6 +246,9 @@ class BaseMutationOptions(MutationOptions):
     #: If we should allow unauthenticated users to do this mutation
     allow_unauthenticated = False
 
+    #: The input schema for the schema query
+    input_schema = None
+
 
 class BaseMutation(ClientIDMutation):
     """Base mutation enchanced with permission checking and relay id handling."""
@@ -215,6 +268,7 @@ class BaseMutation(ClientIDMutation):
         permissions=None,
         permissions_any=True,
         allow_unauthenticated=False,
+        input_schema=None,
         _meta=None,
         **kwargs
     ):
@@ -224,8 +278,15 @@ class BaseMutation(ClientIDMutation):
         _meta.permissions = permissions or []
         _meta.permissions_any = permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
+        _meta.input_schema = input_schema or {}
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+        iname = cls.Input._meta.name
+        input_schema_registry[iname] = {
+            "input_object": iname,
+            "fields": list(_meta.input_schema.values()),
+        }
 
     @classmethod
     def get_node(cls, info, node_id, field="id", only_type=None):
@@ -353,6 +414,7 @@ class BaseModelMutation(BaseMutation):
         required_fields=None,
         exclude_fields=None,
         only_fields=None,
+        input_schema=None,
         _meta=None,
         **kwargs
     ):
@@ -366,8 +428,16 @@ class BaseModelMutation(BaseMutation):
         if not return_field_name:
             return_field_name = _get_model_name(model)
 
-        input_fields = _get_fields(model, only_fields, exclude_fields, required_fields)
-        input_fields = yank_fields_from_attrs(input_fields, _as=graphene.InputField)
+        fdata = _get_fields(model, only_fields, exclude_fields, required_fields)
+        input_fields = yank_fields_from_attrs(
+            {k: v["field"] for k, v in fdata.items()},
+            _as=graphene.InputField,
+        )
+
+        input_schema = _update_dict_nested(
+            {k: v["schema"] for k, v in fdata.items()},
+            input_schema or {},
+        )
 
         fields = _get_output_fields(model, return_field_name)
 
@@ -382,6 +452,7 @@ class BaseModelMutation(BaseMutation):
         super().__init_subclass_with_meta__(
             _meta=_meta,
             input_fields=input_fields,
+            input_schema=input_schema,
             **kwargs,
         )
 

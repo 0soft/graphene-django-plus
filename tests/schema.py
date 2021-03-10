@@ -6,6 +6,7 @@ from graphene_django_plus.fields import (
     CountableConnection,
     OrderableConnectionField,
 )
+from graphene_django_plus.queries import Query as _Query
 from graphene_django_plus.mutations import (
     ModelCreateMutation,
     ModelUpdateMutation,
@@ -60,7 +61,7 @@ class MilestoneCommentType(ModelType):
 # Queries
 
 
-class Query(graphene.ObjectType):
+class Query(graphene.ObjectType, _Query):
     projects = OrderableConnectionField(ProjectType)
     project = relay.Node.Field(ProjectType)
 

@@ -21,13 +21,12 @@ from .models import (
     GuardedModel,
     GuardedModelManager,
 )
+from .schema import FieldKind
 
 
 class MutationErrorType(graphene.ObjectType):
     """An error that happened in a mutation."""
 
-    #: The field that caused the error, or `null` if it isn't associated
-    #: with any particular field.
     field = graphene.String(
         description=(
             "The field that caused the error, or `null` if it "
@@ -35,9 +34,109 @@ class MutationErrorType(graphene.ObjectType):
         ),
         required=False,
     )
+    message = graphene.String(
+        description="The error message.",
+    )
 
-    #: The error message
-    message = graphene.String(description="The error message.")
+
+class InputSchemaFieldChoiceType(graphene.ObjectType):
+    """An input schema field choice."""
+
+    label = graphene.String(
+        description="The choice's label.",
+        required=True,
+    )
+    name = graphene.String(
+        description="The choice's name as a JSON string.",
+        required=True,
+    )
+    value = graphene.JSONString(
+        description="The choice's value as a JSON string.",
+        required=True,
+    )
+
+
+class InputSchemaFieldType(graphene.ObjectType):
+    """The input schema field."""
+
+    field = graphene.String(
+        description="The name of the field",
+        required=True,
+    )
+    kind = FieldKind(
+        description="The kind of this field.",
+        required=True,
+    )
+    multiple = graphene.String(
+        description="If this field expects an array of values.",
+        required=True,
+        default_value=False,
+    )
+    choices = graphene.List(
+        graphene.NonNull(InputSchemaFieldChoiceType),
+        description="Choices for this field.",
+        required=False,
+        default_value=None,
+    )
+    verbose_name = graphene.String(
+        description="The field's humanized name.",
+        required=False,
+        default_value=None,
+    )
+    help_text = graphene.String(
+        description="A help text for the field.",
+        required=False,
+        default_value=None,
+    )
+    min_length = graphene.Int(
+        description="Min length for string kinds.",
+        required=False,
+        default_value=None,
+    )
+    max_length = graphene.Int(
+        description="Max length for string kinds.",
+        required=False,
+        default_value=None,
+    )
+    min_value = graphene.Int(
+        description="Min value for numeric kinds.",
+        required=False,
+        default_value=None,
+    )
+    max_value = graphene.Int(
+        description="Max value for numeric kinds.",
+        required=False,
+        default_value=None,
+    )
+    max_digits = graphene.Int(
+        description="Max digits for decimal kinds (null otherwise).",
+        required=False,
+        default_value=None,
+    )
+    decimal_places = graphene.Int(
+        description="Max digits for decimal kinds (null otherwise).",
+        required=False,
+        default_value=None,
+    )
+    of_type = graphene.String(
+        description="The name of the related field for ID kinds.",
+        required=False,
+        default_value=None,
+    )
+
+
+class InputSchemaType(graphene.ObjectType):
+    """The input schema."""
+
+    input_object = graphene.String(
+        description="The name of the input object.",
+        required=True,
+    )
+    fields = graphene.List(
+        graphene.NonNull(InputSchemaFieldType),
+        description="The fields in the input object.",
+        required=True,
+    )
 
 
 class UploadType(graphene.types.Scalar):

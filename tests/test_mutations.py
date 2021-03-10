@@ -18,21 +18,6 @@ from .schema import MilestoneCommentType, IssueType, ProjectType
 
 class TestTypes(BaseTestCase):
     def test_mutation_create(self):
-        from .schema import schema
-        import pprint
-
-        # pprint.pprint([f["name"] for f in schema.introspect()["__schema"]["types"]])
-        pprint.pprint(
-            [(f["kind"], f["name"]) for f in schema.introspect()["__schema"]["types"]]
-        )
-        pprint.pprint(
-            [
-                f
-                for f in schema.introspect()["__schema"]["types"]
-                if f["name"] == "IssueType"
-            ]
-        )
-        assert False
         # project
         self.assertIsNone(Project.objects.filter(name="FooBar").first())
         r = self.query(

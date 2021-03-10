@@ -40,21 +40,22 @@ class Issue(GuardedModel):
             ("can_write", "Can update the issue's information."),
         ]
 
-    units = {
-        "un": "un",
-        "g": "grams",
+    kinds = {
+        "b": "Bug",
+        "f": "Feature",
     }
 
     name = models.CharField(
         max_length=255,
     )
-    unit = models.CharField(
-        verbose_name="quantity",
-        help_text="the quantity",
-        max_length=max(len(t) for t in units),
-        choices=list(units.items()),
-        default="un",
+    kind = models.CharField(
+        verbose_name="kind",
+        help_text="the kind of the issue",
+        max_length=max(len(t) for t in kinds),
+        choices=list(kinds.items()),
+        default=None,
         blank=True,
+        null=True,
     )
     priority = models.IntegerField(
         default=0,
