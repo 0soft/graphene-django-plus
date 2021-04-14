@@ -97,7 +97,7 @@ class MyModelType(ModelType):
         # permission to the request's user will be allowed to return to him
         # Note that `can_read` was defined in the model.
         # If the model doesn't inherid from `GuardedModel`, `guardian` is not
-        # installed ot this list is empty, any object will be allowed.
+        # installed or this list is empty, any object will be allowed.
         # This is empty by default
         object_permissions = [
             'can_read',
