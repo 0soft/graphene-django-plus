@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 from setuptools import setup
 
-_need_pytest = {"pytest", "test"}.intersection(sys.argv)
+tests_require = [
+    "pytest>=3.6.3",
+    "pytest-cov",
+    "mock",
+    "pytest-django>=3.3.2",
+    "codecov",
+]
 
 
-def _read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+dev_requires = [
+    "black==19.10b0",
+    "flake8==3.7.9",
+] + tests_require
 
 
 setup(
@@ -35,8 +41,13 @@ setup(
     ),
     url="https://github.com/0soft/graphene-django-plus",
     packages=["graphene_django_plus"],
-    setup_requires=["pytest-runner >=4.0"] if _need_pytest else [],
-    long_description=_read("README.md"),
+    setup_requires=["pytest-runner"],
+    tests_require=tests_require,
+    extras_require={
+        "test": tests_require,
+        "dev": dev_requires,
+    },
+    long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
