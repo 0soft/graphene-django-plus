@@ -9,6 +9,12 @@ tests_require = [
     "mock",
     "pytest-django>=3.3.2",
     "codecov",
+    "django-filter",
+    "django-guardian",
+    "graphene-django-optimizer",
+    "graphene-django",
+    "graphene",
+    "graphql-core",
 ]
 
 
