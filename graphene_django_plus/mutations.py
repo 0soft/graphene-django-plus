@@ -178,7 +178,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
                 f.kwargs["required"] = not field.null
             else:
-                f.kwargs["required"] = not field.blank
+                f.kwargs["required"] = not field.blank and field.default is django.db.models.fields.NOT_PROVIDED
 
         if getattr(field, "choices", None):
             items = field.choices
