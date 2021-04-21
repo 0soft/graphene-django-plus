@@ -1,10 +1,13 @@
 dist: xenial
 language: python
 python:
+  - '3.9'
   - '3.8'
   - '3.7'
   - '3.6'
 env:
+  - DJANGO_VERSION=">=3.2.0,<3.3"
+  - DJANGO_VERSION=">=3.1.0,<3.2"
   - DJANGO_VERSION=">=3.0.0,<3.1"
   - DJANGO_VERSION=">=2.2.0,<2.3"
 install:
@@ -19,7 +22,7 @@ jobs:
   include:
   - stage: lint
     install:
-    - pip install flake8==3.8.3
+    - pip install flake8==3.9.1
     script:
     - flake8
   - stage: deploy
