@@ -27,6 +27,4 @@ class Query(object):
         return input_schema_registry.get(input_object, None)
 
     def resolve_gql_input_schema_all(root, info, **kwargs):
-        return sorted(
-            input_schema_registry.values(), key=lambda obj: obj["input_object"]
-        )
+        return sorted(input_schema_registry.values(), key=lambda obj: obj["input_object"])

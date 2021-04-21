@@ -109,9 +109,7 @@ class GrapheneDjangoPlusSettings(object):
         return val
 
 
-graphene_django_plus_settings = GrapheneDjangoPlusSettings(
-    None, DEFAULTS, IMPORT_STRINGS
-)
+graphene_django_plus_settings = GrapheneDjangoPlusSettings(None, DEFAULTS, IMPORT_STRINGS)
 
 
 def reload_graphene_django_plus_settings(*args, **kwargs):

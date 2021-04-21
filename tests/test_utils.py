@@ -30,8 +30,6 @@ class TestTypes(BaseTestCase):
             get_nodes(issues, ProjectType)
 
         issues_with_wrong_id = issues[:]
-        issues_with_wrong_id.append(
-            base64.b64encode("IssueType:9999".encode()).decode()
-        )
+        issues_with_wrong_id.append(base64.b64encode("IssueType:9999".encode()).decode())
         with self.assertRaises(AssertionError):
             get_nodes(issues_with_wrong_id)

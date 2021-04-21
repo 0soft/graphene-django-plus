@@ -104,8 +104,7 @@ def _get_validation_errors(validation_error):
 
 def _get_fields(model, only_fields, exclude_fields, required_fields):
     fields = [
-        (field.name, field)
-        for field in sorted(list(model._meta.fields + model._meta.many_to_many))
+        (field.name, field) for field in sorted(list(model._meta.fields + model._meta.many_to_many))
     ]
 
     # Only add the field as input field if the foreign key (reverse side)
@@ -153,15 +152,9 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 description=field.help_text,
             )
         elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
-            reverse_rel_include = (
-                graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
-            )
+            reverse_rel_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
             # Checking whether it was globally configured to not include reverse relations
-            if (
-                isinstance(field, ManyToOneRel)
-                and not reverse_rel_include
-                and not only_fields
-            ):
+            if isinstance(field, ManyToOneRel) and not reverse_rel_include and not only_fields:
                 continue
 
             f = graphene.List(
@@ -271,7 +264,7 @@ class BaseMutation(ClientIDMutation):
         allow_unauthenticated=False,
         input_schema=None,
         _meta=None,
-        **kwargs
+        **kwargs,
     ):
         if not _meta:
             _meta = BaseMutationOptions(cls)
@@ -301,9 +294,7 @@ class BaseMutation(ClientIDMutation):
             raise ValidationError({field: str(e)})
         else:
             if node is None:  # pragma: no cover
-                raise ValidationError(
-                    {field: "Couldn't resolve to a node: {}".format(node_id)}
-                )
+                raise ValidationError({field: "Couldn't resolve to a node: {}".format(node_id)})
 
         return node
 
@@ -330,9 +321,7 @@ class BaseMutation(ClientIDMutation):
         if not cls._meta.permissions:
             return True
 
-        return check_perms(
-            user, cls._meta.permissions, any_perm=cls._meta.permissions_any
-        )
+        return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **data):
@@ -417,7 +406,7 @@ class BaseModelMutation(BaseMutation):
         only_fields=None,
         input_schema=None,
         _meta=None,
-        **kwargs
+        **kwargs,
     ):
         if not model:  # pragma: no cover
             raise ImproperlyConfigured("model is required for ModelMutation")
@@ -585,11 +574,7 @@ class ModelMutation(BaseModelMutation):
         opts = instance._meta
 
         for f in opts.fields:
-            if (
-                not f.editable
-                or isinstance(f, models.AutoField)
-                or f.name not in cleaned_data
-            ):
+            if not f.editable or isinstance(f, models.AutoField) or f.name not in cleaned_data:
                 continue
 
             data = cleaned_data[f.name]

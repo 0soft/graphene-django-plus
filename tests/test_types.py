@@ -55,16 +55,8 @@ class TestTypes(BaseTestCase):
                                                     "name": "Milestone 1",
                                                     "issues": {
                                                         "edges": [
-                                                            {
-                                                                "node": {
-                                                                    "name": "Issue 1"
-                                                                }
-                                                            },
-                                                            {
-                                                                "node": {
-                                                                    "name": "Issue 2"
-                                                                }
-                                                            },
+                                                            {"node": {"name": "Issue 1"}},
+                                                            {"node": {"name": "Issue 2"}},
                                                         ]
                                                     },
                                                 }
@@ -183,16 +175,8 @@ class TestTypes(BaseTestCase):
                                                     "name": "Milestone 1",
                                                     "issues": {
                                                         "edges": [
-                                                            {
-                                                                "node": {
-                                                                    "name": "Issue 1"
-                                                                }
-                                                            },
-                                                            {
-                                                                "node": {
-                                                                    "name": "Issue 2"
-                                                                }
-                                                            },
+                                                            {"node": {"name": "Issue 1"}},
+                                                            {"node": {"name": "Issue 2"}},
                                                         ]
                                                     },
                                                 }

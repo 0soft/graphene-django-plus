@@ -432,9 +432,7 @@ class TestMutationRelatedObjects(BaseTestCase):
             json.loads(r.content),
             {
                 "data": {
-                    "milestoneUpdate": {
-                        "milestone": {"name": "release-A", "issues": {"edges": []}}
-                    }
+                    "milestoneUpdate": {"milestone": {"name": "release-A", "issues": {"edges": []}}}
                 }
             },
         )
@@ -443,9 +441,7 @@ class TestMutationRelatedObjects(BaseTestCase):
 class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
     """Tests for creating and updating reverse side of FK and M2M relationships."""
 
-    @override_settings(
-        GRAPHENE_DJANGO_PLUS={"MUTATIONS_INCLUDE_REVERSE_RELATIONS": False}
-    )
+    @override_settings(GRAPHENE_DJANGO_PLUS={"MUTATIONS_INCLUDE_REVERSE_RELATIONS": False})
     def test_create_milestone_issues_turned_off_related_setting(self):
         """Test that a milestone can be created with a list of issues."""
 

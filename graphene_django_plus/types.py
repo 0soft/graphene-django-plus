@@ -200,7 +200,7 @@ class ModelType(_BaseDjangoObjectType):
         object_permissions_any=True,
         allow_unauthenticated=False,
         prefetch=None,
-        **kwargs
+        **kwargs,
     ):
         if not _meta:
             _meta = DjangoObjectTypeOptions(cls)
@@ -244,8 +244,7 @@ class ModelType(_BaseDjangoObjectType):
 
         ret = gql_optimizer.query(ret, info)
         prl = {
-            i.to_attr if isinstance(i, Prefetch) else i: i
-            for i in ret._prefetch_related_lookups
+            i.to_attr if isinstance(i, Prefetch) else i: i for i in ret._prefetch_related_lookups
         }
         ret._prefetch_related_lookups = tuple(prl.values())
 
@@ -269,9 +268,7 @@ class ModelType(_BaseDjangoObjectType):
         else:
             instance = super().get_node(info, id)
 
-        if instance is not None and not cls.check_object_permissions(
-            info.context.user, instance
-        ):
+        if instance is not None and not cls.check_object_permissions(info.context.user, instance):
             raise PermissionDenied("No permissions")
 
         return instance
@@ -289,9 +286,7 @@ class ModelType(_BaseDjangoObjectType):
         if not cls._meta.permissions:
             return True
 
-        return check_perms(
-            user, cls._meta.permissions, any_perm=cls._meta.permissions_any
-        )
+        return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
     def check_object_permissions(cls, user, instance):

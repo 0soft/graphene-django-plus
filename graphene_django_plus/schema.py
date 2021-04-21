@@ -40,9 +40,7 @@ class FieldKind(graphene.Enum):
 
 @functools.singledispatch
 def get_field_schema(field):
-    raise Exception(
-        "Don't know how to convert the Django field %s (%s)" % (field, field.__class__)
-    )
+    raise Exception("Don't know how to convert the Django field %s (%s)" % (field, field.__class__))
 
 
 @get_field_schema.register(models.CharField)
