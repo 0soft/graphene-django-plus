@@ -27,7 +27,7 @@ pip install graphene-django-optimizer django-guardian
 
 * Provides some base types for Django Models to improve querying them with:
     * Unauthenticated user handling
-    * Automatic optimization using [graph-django-optimizer](https://github.com/tfoxy/graphene-django-optimizer)
+    * Automatic optimization using [graphene-django-optimizer](https://github.com/tfoxy/graphene-django-optimizer)
     * Permission handling for queries using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
     * Object permission handling for queries using [django guardian](https://github.com/django-guardian/django-guardian)
     * Relay id conversion so querying can use the global id instead of the model's id
@@ -292,20 +292,39 @@ mutation {
 
 Any validation errors will be presented in the `errors` return value.
 
-To turn off auto related relations addition to the mutation input - set global `MUTATIONS_INCLUDE_REVERSE_RELATIONS` parameter to `False` in your `settings.py`:
+To turn off auto related relations addition to the mutation input - set global
+`MUTATIONS_INCLUDE_REVERSE_RELATIONS` parameter to `False` in your
+`settings.py`:
+
 ```
 GRAPHENE_DJANGO_PLUS = {
     'MUTATIONS_INCLUDE_REVERSE_RELATIONS': False
 }
 ```
 
-Note: in case reverse relation does not have `related_name` attribute set - mutation input will be generated as Django itself is generating by appending `_set` to the lower cased model name - `modelname_set`
+Note: in case reverse relation does not have `related_name` attribute set -
+mutation input will be generated as Django itself is generating by appending
+`_set` to the lower cased model name - `modelname_set`
 
 ## License
 
 This project is licensed under MIT licence (see `LICENSE` for more info)
 
 ## Contributing
+
+Make sure to have [poetry](https://python-poetry.org/) installed.
+
+Install dependencies with:
+
+```bash
+poetry install
+```
+
+Run the testsuite with:
+
+```bash
+poetry run pytest
+```
 
 Feel free to fork the project and send me pull requests with new features,
 corrections and translations. We'll gladly merge them and release new versions
