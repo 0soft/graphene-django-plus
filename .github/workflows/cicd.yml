@@ -1,5 +1,12 @@
 name: Run Tests
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types:
+      - released
 
 jobs:
   lint-black:
