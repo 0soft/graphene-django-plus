@@ -1,6 +1,6 @@
 # graphene-django-plus #
 
-[![build status](https://img.shields.io/travis/0soft/graphene-django-plus.svg)](https://travis-ci.org/0soft/graphene-django-plus)
+[![build status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2F0soft%2Fgraphene-django-plus%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/0soft/graphene-django-plus/goto?ref=master)
 [![docs status](https://img.shields.io/readthedocs/graphene-django-plus.svg)](https://graphene-django-plus.readthedocs.io)
 [![coverage](https://img.shields.io/codecov/c/github/0soft/graphene-django-plus.svg)](https://codecov.io/gh/0soft/graphene-django-plus)
 [![PyPI version](https://img.shields.io/pypi/v/graphene-django-plus.svg)](https://pypi.org/project/graphene-django-plus/)
