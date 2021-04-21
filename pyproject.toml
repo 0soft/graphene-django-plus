@@ -32,6 +32,8 @@ packages = [{include = "graphene_django_plus"}]
 python = "^3.7"
 
 [tool.poetry.dev-dependencies]
+sphinx = {version = "^3", optional = true}
+sphinx-rtd-theme = {version = "^0.5.2", optional = true}
 pytest = "^6.2.3"
 pytest-cov = "^2.11.1"
 pytest-django = "^4.2.0"
@@ -46,6 +48,9 @@ graphql-core = "~2"
 black = "^20.8b1"
 flake8 = "^3.9.1"
 pynvim = "^0.4.3"
+
+[tool.poetry.extras]
+docs = ["sphinx", "sphinx-rtd-theme"]
 
 [tool.black]
 line-length = 100

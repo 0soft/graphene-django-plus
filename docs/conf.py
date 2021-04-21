@@ -21,11 +21,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
 # -- Project information -----------------------------------------------------
 
 project = "graphene-django-plus"
-copyright = "2019-2020, Zerosoft Tecnologia LTDA"
+copyright = "2019-2021, Zerosoft Tecnologia LTDA"
 author = "Zerosoft Tecnologia LTDA"
 
 # The full version, including alpha/beta/rc tags
-release = "2.3.2"
+release = "2.4.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -59,3 +59,5 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+master_doc = "index"
