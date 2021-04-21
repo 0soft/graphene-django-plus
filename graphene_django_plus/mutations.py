@@ -201,9 +201,9 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
         s = get_field_schema(field)
         s.update(
             {
-                "field": name,
+                "name": name,
                 # FIXME: Get verbose_name and help_text for m2m
-                "verbose_name": getattr(field, "verbose_name", None),
+                "label": getattr(field, "verbose_name", None),
                 "help_text": getattr(field, "help_text", None),
                 "max_length": getattr(field, "max_length", None),
                 "choices": choices,

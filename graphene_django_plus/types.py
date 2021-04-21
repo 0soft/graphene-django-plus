@@ -59,7 +59,7 @@ class InputSchemaFieldChoiceType(graphene.ObjectType):
 class InputSchemaFieldType(graphene.ObjectType):
     """The input schema field."""
 
-    field = graphene.String(
+    name = graphene.String(
         description="The name of the field",
         required=True,
     )
@@ -78,7 +78,7 @@ class InputSchemaFieldType(graphene.ObjectType):
         required=False,
         default_value=None,
     )
-    verbose_name = graphene.String(
+    label = graphene.String(
         description="The field's humanized name.",
         required=False,
         default_value=None,

@@ -11,7 +11,7 @@ class TestQueries(BaseTestCase):
               gqlInputSchema (inputObject: "IssueCreateMutationInput") {
                 inputObject
                 fields {
-                  field
+                  name
                   kind
                   multiple
                   choices {
@@ -19,7 +19,7 @@ class TestQueries(BaseTestCase):
                     name
                     value
                   }
-                  verboseName
+                  label
                   helpText
                   minLength
                   maxLength
@@ -42,7 +42,7 @@ class TestQueries(BaseTestCase):
                     {
                         "choices": None,
                         "decimalPlaces": None,
-                        "field": "name",
+                        "name": "name",
                         "helpText": "",
                         "kind": "STRING",
                         "maxDigits": None,
@@ -52,7 +52,7 @@ class TestQueries(BaseTestCase):
                         "minValue": None,
                         "multiple": "false",
                         "ofType": None,
-                        "verboseName": "name",
+                        "label": "name",
                     },
                     {
                         "choices": [
@@ -60,7 +60,7 @@ class TestQueries(BaseTestCase):
                             {"label": "Feature", "name": "F", "value": '"f"'},
                         ],
                         "decimalPlaces": None,
-                        "field": "kind",
+                        "name": "kind",
                         "helpText": "the kind of the issue",
                         "kind": "STRING",
                         "maxDigits": None,
@@ -70,12 +70,12 @@ class TestQueries(BaseTestCase):
                         "minValue": None,
                         "multiple": "false",
                         "ofType": None,
-                        "verboseName": "kind",
+                        "label": "kind",
                     },
                     {
                         "choices": None,
                         "decimalPlaces": None,
-                        "field": "priority",
+                        "name": "priority",
                         "helpText": "",
                         "kind": "INTEGER",
                         "maxDigits": None,
@@ -85,12 +85,12 @@ class TestQueries(BaseTestCase):
                         "minValue": None,
                         "multiple": "false",
                         "ofType": None,
-                        "verboseName": "priority",
+                        "label": "priority",
                     },
                     {
                         "choices": None,
                         "decimalPlaces": None,
-                        "field": "milestone",
+                        "name": "milestone",
                         "helpText": "",
                         "kind": "ID",
                         "maxDigits": None,
@@ -100,7 +100,7 @@ class TestQueries(BaseTestCase):
                         "minValue": None,
                         "multiple": "false",
                         "ofType": "MilestoneType",
-                        "verboseName": "milestone",
+                        "label": "milestone",
                     },
                 ],
                 "inputObject": "IssueCreateMutationInput",
@@ -114,7 +114,7 @@ class TestQueries(BaseTestCase):
               gqlInputSchema (inputObject: "NonExisting") {
                 inputObject
                 fields {
-                  field
+                  name
                   kind
                   multiple
                   choices {
@@ -122,7 +122,7 @@ class TestQueries(BaseTestCase):
                     name
                     value
                   }
-                  verboseName
+                  label
                   helpText
                   minLength
                   maxLength
@@ -147,7 +147,7 @@ class TestQueries(BaseTestCase):
               gqlInputSchemaAll {
                 inputObject
                 fields {
-                  field
+                  name
                   kind
                   multiple
                   choices {
@@ -155,7 +155,7 @@ class TestQueries(BaseTestCase):
                     name
                     value
                   }
-                  verboseName
+                  label
                   helpText
                   minLength
                   maxLength
@@ -179,7 +179,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -189,7 +189,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": [
@@ -197,7 +197,7 @@ class TestQueries(BaseTestCase):
                                 {"label": "Feature", "name": "F", "value": '"f"'},
                             ],
                             "decimalPlaces": None,
-                            "field": "kind",
+                            "name": "kind",
                             "helpText": "the kind of the issue",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -207,12 +207,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "kind",
+                            "label": "kind",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "priority",
+                            "name": "priority",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -222,12 +222,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "priority",
+                            "label": "priority",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "milestone",
+                            "name": "milestone",
                             "helpText": "",
                             "kind": "ID",
                             "maxDigits": None,
@@ -237,7 +237,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": "MilestoneType",
-                            "verboseName": "milestone",
+                            "label": "milestone",
                         },
                     ],
                     "inputObject": "IssueCreateMutationInput",
@@ -247,7 +247,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -257,7 +257,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         }
                     ],
                     "inputObject": "IssueDeleteMutationInput",
@@ -267,7 +267,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -277,12 +277,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -292,7 +292,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": [
@@ -300,7 +300,7 @@ class TestQueries(BaseTestCase):
                                 {"label": "Feature", "name": "F", "value": '"f"'},
                             ],
                             "decimalPlaces": None,
-                            "field": "kind",
+                            "name": "kind",
                             "helpText": "the kind of the issue",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -310,12 +310,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "kind",
+                            "label": "kind",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "priority",
+                            "name": "priority",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -325,12 +325,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "priority",
+                            "label": "priority",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "milestone",
+                            "name": "milestone",
                             "helpText": "",
                             "kind": "ID",
                             "maxDigits": None,
@@ -340,7 +340,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": "MilestoneType",
-                            "verboseName": "milestone",
+                            "label": "milestone",
                         },
                     ],
                     "inputObject": "IssueUpdateMutationInput",
@@ -350,7 +350,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -360,12 +360,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "due_date",
+                            "name": "due_date",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -375,12 +375,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "due date",
+                            "label": "due date",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "project",
+                            "name": "project",
                             "helpText": "",
                             "kind": "ID",
                             "maxDigits": None,
@@ -390,7 +390,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": "ProjectType",
-                            "verboseName": "project",
+                            "label": "project",
                         },
                     ],
                     "inputObject": "MilestoneCreateMutationInput",
@@ -400,7 +400,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -410,7 +410,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         }
                     ],
                     "inputObject": "MilestoneDeleteMutationInput",
@@ -420,7 +420,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -430,12 +430,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -445,12 +445,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "due_date",
+                            "name": "due_date",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -460,12 +460,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "due date",
+                            "label": "due date",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "project",
+                            "name": "project",
                             "helpText": "",
                             "kind": "ID",
                             "maxDigits": None,
@@ -475,12 +475,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": "ProjectType",
-                            "verboseName": "project",
+                            "label": "project",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "issues",
+                            "name": "issues",
                             "helpText": None,
                             "kind": "ID",
                             "maxDigits": None,
@@ -490,12 +490,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "true",
                             "ofType": "IssueType",
-                            "verboseName": None,
+                            "label": None,
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "milestonecomment_set",
+                            "name": "milestonecomment_set",
                             "helpText": None,
                             "kind": "ID",
                             "maxDigits": None,
@@ -505,7 +505,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "true",
                             "ofType": "MilestoneCommentType",
-                            "verboseName": None,
+                            "label": None,
                         },
                     ],
                     "inputObject": "MilestoneUpdateMutationInput",
@@ -515,7 +515,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -525,12 +525,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "due_date",
+                            "name": "due_date",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -540,7 +540,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "due date",
+                            "label": "due date",
                         },
                     ],
                     "inputObject": "ProjectCreateMutationInput",
@@ -550,7 +550,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -560,7 +560,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         }
                     ],
                     "inputObject": "ProjectDeleteMutationInput",
@@ -570,7 +570,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "id",
+                            "name": "id",
                             "helpText": "",
                             "kind": "INTEGER",
                             "maxDigits": None,
@@ -580,12 +580,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "ID",
+                            "label": "ID",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "name",
+                            "name": "name",
                             "helpText": "",
                             "kind": "STRING",
                             "maxDigits": None,
@@ -595,12 +595,12 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "name",
+                            "label": "name",
                         },
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "field": "due_date",
+                            "name": "due_date",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -610,7 +610,7 @@ class TestQueries(BaseTestCase):
                             "minValue": None,
                             "multiple": "false",
                             "ofType": None,
-                            "verboseName": "due date",
+                            "label": "due date",
                         },
                     ],
                     "inputObject": "ProjectUpdateMutationInput",
