@@ -611,7 +611,7 @@ class ModelMutation(BaseModelMutation):
     def clean_instance(cls, instance, clean_input):
         """Validate the instance by calling its `.full_clean()` method."""
         try:
-            instance.full_clean()
+            instance.full_clean(exclude=cls._meta.exclude_fields)
         except ValidationError as e:
             if e.error_dict:
                 raise e
