@@ -365,7 +365,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "name": "due_date",
+                            "name": "dueDate",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -450,7 +450,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "name": "due_date",
+                            "name": "dueDate",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -495,7 +495,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "name": "milestonecomment_set",
+                            "name": "milestonecommentSet",
                             "helpText": None,
                             "kind": "ID",
                             "maxDigits": None,
@@ -530,7 +530,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "name": "due_date",
+                            "name": "dueDate",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,
@@ -600,7 +600,7 @@ class TestQueries(BaseTestCase):
                         {
                             "choices": None,
                             "decimalPlaces": None,
-                            "name": "due_date",
+                            "name": "dueDate",
                             "helpText": "",
                             "kind": "DATE",
                             "maxDigits": None,

@@ -194,7 +194,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
         s = get_field_schema(field)
         s.update(
             {
-                "name": name,
+                "name": to_camel_case(name),
                 # FIXME: Get verbose_name and help_text for m2m
                 "label": getattr(field, "verbose_name", None),
                 "help_text": getattr(field, "help_text", None),
