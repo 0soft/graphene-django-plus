@@ -56,35 +56,21 @@ class InputSchemaFieldChoiceType(graphene.ObjectType):
     )
 
 
-class InputSchemaFieldType(graphene.ObjectType):
-    """The input schema field."""
+class InputSchemaFieldValidationType(graphene.ObjectType):
+    """Validation data for the field."""
 
-    name = graphene.String(
-        description="The name of the field",
-        required=True,
-    )
-    kind = FieldKind(
-        description="The kind of this field.",
-        required=True,
-    )
-    multiple = graphene.Boolean(
-        description="If this field expects an array of values.",
+    required = graphene.Boolean(
+        description="If this field is required.",
         required=True,
         default_value=False,
     )
-    choices = graphene.List(
-        graphene.NonNull(InputSchemaFieldChoiceType),
-        description="Choices for this field.",
+    min_value = graphene.JSONString(
+        description="Min value for the field. Parse the json to get its value.",
         required=False,
         default_value=None,
     )
-    label = graphene.String(
-        description="The field's humanized name.",
-        required=False,
-        default_value=None,
-    )
-    help_text = graphene.String(
-        description="A help text for the field.",
+    max_value = graphene.JSONString(
+        description="Max value for the field. Parse the json to get its value.",
         required=False,
         default_value=None,
     )
@@ -98,16 +84,6 @@ class InputSchemaFieldType(graphene.ObjectType):
         required=False,
         default_value=None,
     )
-    min_value = graphene.Int(
-        description="Min value for numeric kinds.",
-        required=False,
-        default_value=None,
-    )
-    max_value = graphene.Int(
-        description="Max value for numeric kinds.",
-        required=False,
-        default_value=None,
-    )
     max_digits = graphene.Int(
         description="Max digits for decimal kinds (null otherwise).",
         required=False,
@@ -118,10 +94,59 @@ class InputSchemaFieldType(graphene.ObjectType):
         required=False,
         default_value=None,
     )
+
+
+class InputSchemaFieldType(graphene.ObjectType):
+    """The input schema field."""
+
+    name = graphene.String(
+        description="The name of the field",
+        required=True,
+    )
+    kind = FieldKind(
+        description="The kind of this field.",
+        required=True,
+    )
     of_type = graphene.String(
         description="The name of the related field for ID kinds.",
         required=False,
         default_value=None,
+    )
+    multiple = graphene.Boolean(
+        description="If this field expects an array of values.",
+        required=True,
+        default_value=False,
+    )
+    choices = graphene.List(
+        graphene.NonNull(InputSchemaFieldChoiceType),
+        description="Choices for this field.",
+        required=False,
+        default_value=None,
+    )
+    hidden = graphene.Boolean(
+        description="If this field should be displayed in a hidden field.",
+        required=True,
+        default_value=False,
+    )
+    label = graphene.String(
+        description="The field's humanized name.",
+        required=False,
+        default_value=None,
+    )
+    help_text = graphene.String(
+        description="A help text for the field.",
+        required=False,
+        default_value=None,
+    )
+    default_value = graphene.JSONString(
+        description="Default value for the field. Parse the json to get its value.",
+        required=False,
+        default_value=None,
+    )
+    validation = graphene.Field(
+        InputSchemaFieldValidationType,
+        description="Validation metadata for this field.",
+        required=True,
     )
 
 

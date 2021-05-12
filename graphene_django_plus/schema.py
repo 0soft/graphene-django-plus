@@ -112,8 +112,10 @@ def get_field_schema_int(field):
 def get_field_schema_decimal(field):
     return {
         "kind": FieldKind.DECIMAL,
-        "max_digits": field.max_digits,
-        "decimal_places": field.decimal_places,
+        "validation": {
+            "max_digits": field.max_digits,
+            "decimal_places": field.decimal_places,
+        },
     }
 
 

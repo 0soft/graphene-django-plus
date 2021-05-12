@@ -3,6 +3,8 @@
 
 import collections
 import collections.abc
+import datetime
+import decimal
 import itertools
 
 from django.core.exceptions import (
@@ -192,14 +194,33 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             choices = None
 
         s = get_field_schema(field)
+        default_value = getattr(field, "default", None)
+        if default_value is NOT_PROVIDED:
+            default_value = None
+        if default_value is not None and callable(default_value):
+            default_value = default_value()
+        if default_value is not None:
+            if isinstance(default_value, decimal.Decimal):
+                default_value = str(default_value)
+            if isinstance(default_value, (datetime.datetime, datetime.date, datetime.time)):
+                default_value = default_value.isoformat()
+
         s.update(
             {
                 "name": to_camel_case(name),
                 # FIXME: Get verbose_name and help_text for m2m
                 "label": getattr(field, "verbose_name", None),
                 "help_text": getattr(field, "help_text", None),
-                "max_length": getattr(field, "max_length", None),
+                "hidden": name == "id",
                 "choices": choices,
+                "default_value": default_value,
+                "validation": {
+                    "required": f.kwargs["required"],
+                    "min_length": getattr(field, "min_length", None),
+                    "max_length": getattr(field, "max_length", None),
+                    "min_value": None,
+                    "max_value": None,
+                },
             }
         )
 
