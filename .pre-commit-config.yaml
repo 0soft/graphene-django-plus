@@ -8,12 +8,12 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=1024']
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 21.5b1
     hooks:
       - id: black
         args: ['--config', 'pyproject.toml']
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.1
+    rev: 3.9.2
     hooks:
       - id: flake8
         args: ['--config=.flake8']

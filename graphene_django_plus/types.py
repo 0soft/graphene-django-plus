@@ -67,7 +67,7 @@ class InputSchemaFieldType(graphene.ObjectType):
         description="The kind of this field.",
         required=True,
     )
-    multiple = graphene.String(
+    multiple = graphene.Boolean(
         description="If this field expects an array of values.",
         required=True,
         default_value=False,
