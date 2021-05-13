@@ -1,5 +1,7 @@
+import collections
 import itertools
 
+from django.db.models.fields.reverse_related import ManyToOneRel
 import graphene
 from graphene.types.mountedtype import MountedType
 from graphene.types.structures import Structure
@@ -141,3 +143,30 @@ def get_inputtype(name, object_type):
 
     _input_registry[object_type] = inputtype
     return inputtype
+
+
+def get_model_fields(model):
+    fields = [
+        (field.name, field) for field in sorted(list(model._meta.fields + model._meta.many_to_many))
+    ]
+    fields.extend(
+        [
+            (field.related_name or field.name + "_set", field)
+            for field in sorted(
+                list(model._meta.related_objects),
+                key=lambda field: field.name,
+            )
+            if not isinstance(field, ManyToOneRel) or field.remote_field.null
+        ],
+    )
+    return fields
+
+
+def update_dict_nested(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = update_dict_nested(d.get(k, {}), v)
+        else:
+            d[k] = v
+
+    return d

@@ -3,8 +3,6 @@
 
 import collections
 import collections.abc
-import datetime
-import decimal
 import itertools
 
 from django.core.exceptions import (
@@ -26,17 +24,15 @@ from graphene.relay.mutation import ClientIDMutation
 from graphene.types.mutation import MutationOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.registry import get_global_registry
-from graphene_django.converter import (
-    convert_django_field_with_choices,
-    get_choices,
-)
+from graphene_django.converter import convert_django_field_with_choices
 from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
 from .models import GuardedModel
-from .schema import get_field_schema
 from .types import (
+    schema_registry,
+    schema_for_field,
     MutationErrorType,
     UploadType,
 )
@@ -48,20 +44,11 @@ from .settings import graphene_django_plus_settings
 from .utils import (
     get_node,
     get_nodes,
+    update_dict_nested,
+    get_model_fields,
 )
 
 _registry = get_global_registry()
-input_schema_registry = {}
-
-
-def _update_dict_nested(d, u):
-    for k, v in u.items():
-        if isinstance(v, collections.abc.Mapping):
-            d[k] = _update_dict_nested(d.get(k, {}), v)
-        else:
-            d[k] = v
-
-    return d
 
 
 def _get_model_name(model):
@@ -105,25 +92,8 @@ def _get_validation_errors(validation_error):
 
 
 def _get_fields(model, only_fields, exclude_fields, required_fields):
-    fields = [
-        (field.name, field) for field in sorted(list(model._meta.fields + model._meta.many_to_many))
-    ]
-
-    # Only add the field as input field if the foreign key (reverse side)
-    # can be set to null, otherwise updates won't work.
-    fields.extend(
-        [
-            (field.related_name or field.name + "_set", field)
-            for field in sorted(
-                list(model._meta.related_objects),
-                key=lambda field: field.name,
-            )
-            if not isinstance(field, ManyToOneRel) or field.remote_field.null
-        ],
-    )
-
     ret = collections.OrderedDict()
-    for name, field in fields:
+    for name, field in get_model_fields(model):
         if (
             (only_fields and name not in only_fields)
             or name in exclude_fields
@@ -176,53 +146,8 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             else:
                 f.kwargs["required"] = not field.blank and field.default is NOT_PROVIDED
 
-        if getattr(field, "choices", None):
-            items = field.choices
-            if isinstance(items, dict):
-                items = items.items()
-
-            choices = []
-            for (original_v, label), (n, value, desc) in zip(items, get_choices(items)):
-                choices.append(
-                    {
-                        "label": label,
-                        "name": n,
-                        "value": value,
-                    }
-                )
-        else:
-            choices = None
-
-        s = get_field_schema(field)
-        default_value = getattr(field, "default", None)
-        if default_value is NOT_PROVIDED:
-            default_value = None
-        if default_value is not None and callable(default_value):
-            default_value = default_value()
-        if default_value is not None:
-            if isinstance(default_value, decimal.Decimal):
-                default_value = str(default_value)
-            if isinstance(default_value, (datetime.datetime, datetime.date, datetime.time)):
-                default_value = default_value.isoformat()
-
-        s.update(
-            {
-                "name": to_camel_case(name),
-                # FIXME: Get verbose_name and help_text for m2m
-                "label": getattr(field, "verbose_name", None),
-                "help_text": getattr(field, "help_text", None),
-                "hidden": name == "id",
-                "choices": choices,
-                "default_value": default_value,
-                "validation": {
-                    "required": f.kwargs["required"],
-                    "min_length": getattr(field, "min_length", None),
-                    "max_length": getattr(field, "max_length", None),
-                    "min_value": None,
-                    "max_value": None,
-                },
-            }
-        )
+        s = schema_for_field(field, name)
+        s["validation"]["required"] = f.kwargs["required"]
 
         ret[name] = {
             "field": f,
@@ -298,8 +223,8 @@ class BaseMutation(ClientIDMutation):
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
         iname = cls.Input._meta.name
-        input_schema_registry[iname] = {
-            "input_object": iname,
+        schema_registry[iname] = {
+            "object_type": iname,
             "fields": list(_meta.input_schema.values()),
         }
 
@@ -445,7 +370,7 @@ class BaseModelMutation(BaseMutation):
             _as=graphene.InputField,
         )
 
-        input_schema = _update_dict_nested(
+        input_schema = update_dict_nested(
             {k: v["schema"] for k, v in fdata.items()},
             input_schema or {},
         )

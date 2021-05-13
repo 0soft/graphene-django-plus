@@ -1,7 +1,17 @@
+import datetime
+import decimal
+
 from django.db import models
 from django.db.models import Prefetch
+from django.db.models.fields import NOT_PROVIDED
+from django.db.models.fields.reverse_related import (
+    ManyToOneRel,
+    ManyToManyRel,
+)
 import graphene
+from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
+from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectTypeOptions
 
 try:
@@ -21,7 +31,75 @@ from .models import (
     GuardedModel,
     GuardedModelManager,
 )
-from .schema import FieldKind
+from .schema import (
+    get_field_schema,
+    FieldKind,
+)
+from .utils import (
+    get_model_fields,
+    update_dict_nested,
+)
+
+
+schema_registry = {}
+
+
+def schema_for_field(field, name):
+    s = get_field_schema(field)
+
+    default_value = getattr(field, "default", None)
+    if default_value is NOT_PROVIDED:
+        default_value = None
+    if default_value is not None and callable(default_value):
+        default_value = default_value()
+    if default_value is not None:
+        if isinstance(default_value, decimal.Decimal):
+            default_value = str(default_value)
+        if isinstance(default_value, (datetime.datetime, datetime.date, datetime.time)):
+            default_value = default_value.isoformat()
+
+    if isinstance(field, (ManyToOneRel, ManyToManyRel)):
+        required = not field.null
+    else:
+        required = not field.blank and field.default is NOT_PROVIDED
+
+    if getattr(field, "choices", None):
+        items = field.choices
+        if isinstance(items, dict):
+            items = items.items()
+
+        choices = []
+        for (original_v, label), (n, value, desc) in zip(items, get_choices(items)):
+            choices.append(
+                {
+                    "label": label,
+                    "name": n,
+                    "value": value,
+                }
+            )
+    else:
+        choices = None
+
+    s.update(
+        {
+            "name": to_camel_case(name),
+            # FIXME: Get verbose_name and help_text for m2m
+            "label": getattr(field, "verbose_name", None),
+            "help_text": getattr(field, "help_text", None),
+            "hidden": name == "id",
+            "choices": choices,
+            "default_value": default_value,
+            "validation": {
+                "required": required,
+                "min_length": getattr(field, "min_length", None),
+                "max_length": getattr(field, "max_length", None),
+                "min_value": None,
+                "max_value": None,
+            },
+        }
+    )
+
+    return s
 
 
 class MutationErrorType(graphene.ObjectType):
@@ -56,7 +134,7 @@ class InputSchemaFieldChoiceType(graphene.ObjectType):
     )
 
 
-class InputSchemaFieldValidationType(graphene.ObjectType):
+class SchemaFieldValidationType(graphene.ObjectType):
     """Validation data for the field."""
 
     required = graphene.Boolean(
@@ -96,7 +174,7 @@ class InputSchemaFieldValidationType(graphene.ObjectType):
     )
 
 
-class InputSchemaFieldType(graphene.ObjectType):
+class SchemaFieldType(graphene.ObjectType):
     """The input schema field."""
 
     name = graphene.String(
@@ -144,21 +222,21 @@ class InputSchemaFieldType(graphene.ObjectType):
         default_value=None,
     )
     validation = graphene.Field(
-        InputSchemaFieldValidationType,
+        SchemaFieldValidationType,
         description="Validation metadata for this field.",
         required=True,
     )
 
 
-class InputSchemaType(graphene.ObjectType):
+class SchemaType(graphene.ObjectType):
     """The input schema."""
 
-    input_object = graphene.String(
+    object_type = graphene.String(
         description="The name of the input object.",
         required=True,
     )
     fields = graphene.List(
-        graphene.NonNull(InputSchemaFieldType),
+        graphene.NonNull(SchemaFieldType),
         description="The fields in the input object.",
         required=True,
     )
@@ -207,6 +285,9 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     #: If any object permission should allow the user to query this model.
     object_permissions_any = True
 
+    #: The fields schema for the schema query
+    fields_schema = None
+
 
 class ModelType(_BaseDjangoObjectType):
     """Base type with automatic optimizations and permissions checking."""
@@ -223,6 +304,7 @@ class ModelType(_BaseDjangoObjectType):
         permissions_any=True,
         object_permissions=None,
         object_permissions_any=True,
+        fields_schema=None,
         allow_unauthenticated=False,
         prefetch=None,
         **kwargs,
@@ -236,7 +318,22 @@ class ModelType(_BaseDjangoObjectType):
         _meta.object_permissions_any = object_permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
 
+        fields = {}
+        for name, field in get_model_fields(model):
+            fields[name] = schema_for_field(field, name)
+
+        fields_schema = update_dict_nested(
+            fields,
+            fields_schema or {},
+        )
+        _meta.fields_schema = fields_schema or {}
+
         super().__init_subclass_with_meta__(_meta=_meta, model=model, **kwargs)
+
+        schema_registry[cls._meta.name] = {
+            "object_type": cls._meta.name,
+            "fields": list(_meta.fields_schema.values()),
+        }
 
     @classmethod
     def get_queryset(cls, qs, info):
