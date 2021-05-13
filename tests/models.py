@@ -13,6 +13,13 @@ class Project(models.Model):
         blank=True,
         default=None,
     )
+    cost = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=None,
+    )
 
 
 class Milestone(models.Model):

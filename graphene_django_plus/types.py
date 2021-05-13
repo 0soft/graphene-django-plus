@@ -80,7 +80,8 @@ def schema_for_field(field, name):
     else:
         choices = None
 
-    s.update(
+    s = update_dict_nested(
+        s,
         {
             "name": to_camel_case(name),
             # FIXME: Get verbose_name and help_text for m2m
@@ -96,7 +97,7 @@ def schema_for_field(field, name):
                 "min_value": None,
                 "max_value": None,
             },
-        }
+        },
     )
 
     return s
