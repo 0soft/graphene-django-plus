@@ -73,8 +73,7 @@ def schema_for_field(field, name):
             choices.append(
                 {
                     "label": label,
-                    "name": n,
-                    "value": value,
+                    "value": n,
                 }
             )
     else:
@@ -125,12 +124,8 @@ class InputSchemaFieldChoiceType(graphene.ObjectType):
         description="The choice's label.",
         required=True,
     )
-    name = graphene.String(
-        description="The choice's name as a JSON string.",
-        required=True,
-    )
-    value = graphene.JSONString(
-        description="The choice's value as a JSON string.",
+    value = graphene.String(
+        description="The choice's value.",
         required=True,
     )
 

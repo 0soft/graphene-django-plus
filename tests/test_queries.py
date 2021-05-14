@@ -16,7 +16,6 @@ class TestQueries(BaseTestCase):
                   multiple
                   choices {
                     label
-                    name
                     value
                   }
                   hidden
@@ -66,8 +65,8 @@ class TestQueries(BaseTestCase):
                     },
                     {
                         "choices": [
-                            {"label": "Bug", "name": "B", "value": '"b"'},
-                            {"label": "Feature", "name": "F", "value": '"f"'},
+                            {"label": "Bug", "value": "B"},
+                            {"label": "Feature", "value": "F"},
                         ],
                         "defaultValue": None,
                         "helpText": "the kind of the issue",
@@ -144,7 +143,6 @@ class TestQueries(BaseTestCase):
                   multiple
                   choices {
                     label
-                    name
                     value
                   }
                   hidden
@@ -182,7 +180,6 @@ class TestQueries(BaseTestCase):
                   multiple
                   choices {
                     label
-                    name
                     value
                   }
                   hidden
@@ -237,8 +234,8 @@ class TestQueries(BaseTestCase):
                             "kind": "STRING",
                             "multiple": False,
                             "choices": [
-                                {"label": "Bug", "name": "B", "value": '"b"'},
-                                {"label": "Feature", "name": "F", "value": '"f"'},
+                                {"label": "Bug", "value": "B"},
+                                {"label": "Feature", "value": "F"},
                             ],
                             "hidden": False,
                             "label": "kind",
@@ -370,8 +367,8 @@ class TestQueries(BaseTestCase):
                             "kind": "STRING",
                             "multiple": False,
                             "choices": [
-                                {"label": "Bug", "name": "B", "value": '"b"'},
-                                {"label": "Feature", "name": "F", "value": '"f"'},
+                                {"label": "Bug", "value": "B"},
+                                {"label": "Feature", "value": "F"},
                             ],
                             "hidden": False,
                             "label": "kind",
@@ -478,8 +475,8 @@ class TestQueries(BaseTestCase):
                             "kind": "STRING",
                             "multiple": False,
                             "choices": [
-                                {"label": "Bug", "name": "B", "value": '"b"'},
-                                {"label": "Feature", "name": "F", "value": '"f"'},
+                                {"label": "Bug", "value": "B"},
+                                {"label": "Feature", "value": "F"},
                             ],
                             "hidden": False,
                             "label": "kind",
