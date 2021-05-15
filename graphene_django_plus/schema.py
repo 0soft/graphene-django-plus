@@ -31,7 +31,7 @@ class FieldKind(graphene.Enum):
     EMAIL = "email"
     SLUG = "slug"
     PHONE = "phone"
-    UUID = "phone"
+    UUID = "uuid"
     IP = "ip"
     URL = "url"
     FILE = "file"
@@ -68,6 +68,13 @@ def get_field_schema_email(field):
 def get_field_schema_slug(field):
     return {
         "kind": FieldKind.SLUG,
+    }
+
+
+@get_field_schema.register(models.UUIDField)
+def get_field_schema_uuid(field):
+    return {
+        "kind": FieldKind.UUID,
     }
 
 
