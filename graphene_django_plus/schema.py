@@ -24,6 +24,7 @@ class FieldKind(graphene.Enum):
     BOOLEAN = "boolean"
     INTEGER = "integer"
     DECIMAL = "decimal"
+    FLOAT = "float"
     DATE = "date"
     DATETIME = "datetime"
     TIME = "time"
@@ -114,7 +115,6 @@ def get_field_schema_int(field):
 
 
 @get_field_schema.register(models.DecimalField)
-@get_field_schema.register(models.FloatField)
 @get_field_schema.register(models.DurationField)
 def get_field_schema_decimal(field):
     return {
@@ -123,6 +123,13 @@ def get_field_schema_decimal(field):
             "max_digits": field.max_digits,
             "decimal_places": field.decimal_places,
         },
+    }
+
+
+@get_field_schema.register(models.FloatField)
+def get_field_schema_float(field):
+    return {
+        "kind": FieldKind.FLOAT,
     }
 
 
