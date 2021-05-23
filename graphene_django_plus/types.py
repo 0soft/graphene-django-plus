@@ -303,6 +303,10 @@ class ModelType(_BaseDjangoObjectType):
         fields_schema=None,
         allow_unauthenticated=False,
         prefetch=None,
+        only_fields=None,
+        fields=None,
+        exclude_fields=None,
+        exclude=None,
         **kwargs,
     ):
         if not _meta:
@@ -314,17 +318,36 @@ class ModelType(_BaseDjangoObjectType):
         _meta.object_permissions_any = object_permissions_any
         _meta.allow_unauthenticated = allow_unauthenticated
 
-        fields = {}
+        _fields_schema = {}
+        # graphene will handle the deprecated only_fields/exclude_fields for us
+        # We just want to mimic the logic here
+        _include = fields if fields is not None else only_fields
+        if _include is not None:
+            _include = set(_include)
+        _exclude = set(exclude or []) or set(exclude_fields or [])
         for name, field in get_model_fields(model):
-            fields[name] = schema_for_field(field, name)
+            if name in _exclude:
+                continue
+            if _include is not None and name not in _include:
+                continue
+
+            _fields_schema[name] = schema_for_field(field, name)
 
         fields_schema = update_dict_nested(
-            fields,
+            _fields_schema,
             fields_schema or {},
         )
         _meta.fields_schema = fields_schema or {}
 
-        super().__init_subclass_with_meta__(_meta=_meta, model=model, **kwargs)
+        super().__init_subclass_with_meta__(
+            _meta=_meta,
+            model=model,
+            only_fields=only_fields,
+            fields=fields,
+            exclude_fields=exclude_fields,
+            exclude=exclude,
+            **kwargs,
+        )
 
         schema_registry[cls._meta.name] = {
             "object_type": cls._meta.name,
