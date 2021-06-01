@@ -58,4 +58,10 @@ class GuardedModel(models.Model):
         perms = [perms] if isinstance(perms, str) else perms
 
         f = any if any_perm else all
+
+        # First try to check if the user has global permissions for this
+        # Otherwise we will check for the objeect itself bellow
+        if f(user.has_perm(p) for p in perms):
+            return True
+
         return f(checker.has_perm(p, self) for p in perms)
