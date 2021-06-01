@@ -22,7 +22,6 @@ except ImportError:
     gql_optimizer = None
     _BaseDjangoObjectType = DjangoObjectType
 
-from .exceptions import PermissionDenied
 from .perms import (
     check_perms,
     check_authenticated,
@@ -364,11 +363,11 @@ class ModelType(_BaseDjangoObjectType):
         Note that the query will only be automaticallu optimized if,
         `graphene_django_optimizer` is installed.
         """
-        if not cls.check_permissions(info.context.user):
-            raise PermissionDenied("No permissions")
-
         if isinstance(qs, models.Manager):
             qs = qs.get_queryset()
+
+        if not cls.check_permissions(info.context.user):
+            return qs.none()
 
         if cls._meta.object_permissions and isinstance(
             cls._meta.model.objects, GuardedModelManager
@@ -410,7 +409,7 @@ class ModelType(_BaseDjangoObjectType):
             instance = super().get_node(info, id)
 
         if instance is not None and not cls.check_object_permissions(info.context.user, instance):
-            raise PermissionDenied("No permissions")
+            return None
 
         return instance
 

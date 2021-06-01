@@ -146,13 +146,32 @@ class TestTypes(BaseTestCase):
                 issue {
                   name
                 }
+                errors {
+                  field
+                  message
+                }
               }
             }
             """
             % (i_id,),
             op_name="issueUpdate",
         )
-        self.assertResponseHasErrors(r)
+        self.assertEqual(
+            json.loads(r.content),
+            {
+                "data": {
+                    "issueUpdate": {
+                        "errors": [
+                            {
+                                "field": None,
+                                "message": "You do not have permission " "to perform this action",
+                            }
+                        ],
+                        "issue": None,
+                    }
+                }
+            },
+        )
 
     def test_mutation_delete(self):
         # project
@@ -220,13 +239,32 @@ class TestTypes(BaseTestCase):
                 issue {
                   name
                 }
+                errors {
+                  field
+                  message
+                }
               }
             }
             """
             % (i_id,),
             op_name="issueDelete",
         )
-        self.assertResponseHasErrors(r)
+        self.assertEqual(
+            json.loads(r.content),
+            {
+                "data": {
+                    "issueDelete": {
+                        "errors": [
+                            {
+                                "field": None,
+                                "message": "You do not have permission " "to perform this action",
+                            }
+                        ],
+                        "issue": None,
+                    }
+                }
+            },
+        )
 
 
 class TestMutationRelatedObjects(BaseTestCase):

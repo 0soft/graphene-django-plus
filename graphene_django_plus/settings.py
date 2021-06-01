@@ -18,6 +18,7 @@ import importlib
 
 DEFAULTS = {
     "MUTATIONS_INCLUDE_REVERSE_RELATIONS": True,
+    "MUTATIONS_SWALLOW_PERMISSION_DENIED": True,
 }
 
 # List of settings that may be in string import notation.

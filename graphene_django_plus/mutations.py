@@ -279,10 +279,10 @@ class BaseMutation(ClientIDMutation):
 
         The mutation itself should be defined in :meth:`.perform_mutation`.
         """
-        if not cls.check_permissions(info.context.user):
-            raise PermissionDenied()
-
         try:
+            if not cls.check_permissions(info.context.user):
+                raise PermissionDenied()
+
             response = cls.perform_mutation(root, info, **data)
             if response.errors is None:
                 response.errors = []
@@ -290,6 +290,11 @@ class BaseMutation(ClientIDMutation):
         except ValidationError as e:
             errors = _get_validation_errors(e)
             return cls(errors=errors)
+        except PermissionDenied as e:
+            if not graphene_django_plus_settings.MUTATIONS_SWALLOW_PERMISSION_DENIED:
+                raise
+            msg = str(e) or "Permission denied..."
+            return cls(errors=[MutationErrorType(message=msg)])
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
