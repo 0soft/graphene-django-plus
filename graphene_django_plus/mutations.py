@@ -9,6 +9,7 @@ from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
     ValidationError,
+    PermissionDenied as DJPermissionDenied,
 )
 from django.db import (
     models,
@@ -290,7 +291,7 @@ class BaseMutation(ClientIDMutation):
         except ValidationError as e:
             errors = _get_validation_errors(e)
             return cls(errors=errors)
-        except PermissionDenied as e:
+        except DJPermissionDenied as e:
             if not graphene_django_plus_settings.MUTATIONS_SWALLOW_PERMISSION_DENIED:
                 raise
             msg = str(e) or "Permission denied..."
