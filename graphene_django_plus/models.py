@@ -12,7 +12,7 @@ from django.db import models
 class GuardedModelManager(models.Manager):
     """Model manager that integrates with guardian to check for permissions."""
 
-    def for_user(self, user, perms, any_perm=False, with_superuser=False):
+    def for_user(self, user, perms, any_perm=False, with_superuser=True):
         """Get a queryset filtered by perms for the user.
 
         :param user: the user itself
