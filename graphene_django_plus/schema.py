@@ -37,6 +37,10 @@ class FieldKind(graphene.Enum):
     URL = "url"
     FILE = "file"
     PASSWORD = "password"
+    CURRENCY = "currency"
+    POSTAL_CODE = "postal-code"
+    COMPANY_DOCUMENT = "company-document"
+    INDIVIDUAL_DOCUMENT = "individual-document"
 
 
 @functools.singledispatch
