@@ -25,7 +25,7 @@ copyright = "2019-2021, Zerosoft Tecnologia LTDA"  # noqa: A001
 author = "Zerosoft Tecnologia LTDA"
 
 # The full version, including alpha/beta/rc tags
-release = "2.6.2"
+release = "2.7.0"
 
 
 # -- General configuration ---------------------------------------------------
