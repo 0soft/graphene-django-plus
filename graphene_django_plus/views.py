@@ -1,4 +1,6 @@
+import contextlib
 import json
+
 from graphene_django.views import GraphQLView as _GraphQLView
 
 
@@ -39,13 +41,11 @@ def _obj_set(obj, path, value):
         obj[current_path] = value
 
     if current_value is None:
-        try:
+        with contextlib.suppress(IndexError):
             if isinstance(path[1], int):
                 obj[current_path] = []
             else:
                 obj[current_path] = {}
-        except IndexError:
-            pass
 
     return _obj_set(obj[current_path], path[1:], value)
 

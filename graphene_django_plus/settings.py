@@ -8,11 +8,10 @@ This module provides the `graphene_django_plus_settings` object, that is used to
 graphene-django-plus settings, checking for user settings first, then falling
 back to the defaults.
 """
-from django.conf import settings
-from django.test.signals import setting_changed
-
 import importlib
 
+from django.conf import settings
+from django.test.signals import setting_changed
 
 # Copied shamelessly from Django REST Framework and graphene-django
 
@@ -50,7 +49,7 @@ def import_from_string(val, setting_name):
         module = importlib.import_module(module_path)
         return getattr(module, class_name)
     except (ImportError, AttributeError) as e:
-        msg = "Could not import '%s' for graphene-django-plus setting '%s'. %s: %s." % (
+        msg = "Could not import '{}' for graphene-django-plus setting '{}'. {}: {}.".format(
             val,
             setting_name,
             e.__class__.__name__,
@@ -59,7 +58,7 @@ def import_from_string(val, setting_name):
         raise ImportError(msg)
 
 
-class GrapheneDjangoPlusSettings(object):
+class GrapheneDjangoPlusSettings:
     """
     A settings object, that allows API settings to be accessed as properties.
     For example:

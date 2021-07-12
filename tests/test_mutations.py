@@ -4,16 +4,12 @@ import json
 from django.test.utils import override_settings
 import graphene
 from graphql_relay import to_global_id
+
 from graphene_django_plus.mutations import ModelCreateMutation
 
 from .base import BaseTestCase
-from .models import (
-    Project,
-    Milestone,
-    Issue,
-    MilestoneComment,
-)
-from .schema import MilestoneCommentType, IssueType, ProjectType
+from .models import Issue, Milestone, MilestoneComment, Project
+from .schema import IssueType, MilestoneCommentType, ProjectType
 
 
 class TestTypes(BaseTestCase):
@@ -502,25 +498,25 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             mutation=Mutation,
         )
         query = """
-            mutation milestoneCreate {
-              milestoneCreate (input: {
-                name: "%s",
-                project: "%s",
-                issues: ["%s"]
-              }) {
-                milestone {
+            mutation milestoneCreate {{
+              milestoneCreate (input: {{
+                name: "{}",
+                project: "{}",
+                issues: ["{}"]
+              }}) {{
+                milestone {{
                   name
-                  issues {
-                    edges {
-                      node {
+                  issues {{
+                    edges {{
+                      node {{
                         name
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """ % (
+                      }}
+                    }}
+                  }}
+                }}
+              }}
+            }}
+            """.format(
             milestone,
             project_id,
             issue_id,

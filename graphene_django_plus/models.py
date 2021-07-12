@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, List, TypeVar, Union
+
 try:
     from guardian.core import ObjectPermissionChecker
     from guardian.shortcuts import get_objects_for_user
@@ -6,13 +8,26 @@ try:
 except ImportError:  # pragma: no cover
     has_guardian = False
 
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
+from django.db.models.query import QuerySet
+
+if TYPE_CHECKING:
+    from guardian.core import ObjectPermissionChecker  # noqa: F811
+
+_T = TypeVar("_T", bound=models.Model, covariant=True)
 
 
-class GuardedModelManager(models.Manager):
+class GuardedModelManager(models.Manager[_T]):
     """Model manager that integrates with guardian to check for permissions."""
 
-    def for_user(self, user, perms, any_perm=False, with_superuser=True):
+    def for_user(
+        self,
+        user: Union[AbstractUser, AnonymousUser],
+        perms: Union[str, List[str]],
+        any_perm: bool = False,
+        with_superuser: bool = True,
+    ) -> QuerySet[_T]:
         """Get a queryset filtered by perms for the user.
 
         :param user: the user itself
@@ -40,9 +55,17 @@ class GuardedModel(models.Model):
     class Meta:
         abstract = True
 
-    objects = GuardedModelManager()
+    # NOTE: This should be adjusted in each model using this class
+    # for better typing support
+    objects = GuardedModelManager["GuardedModel"]()
 
-    def has_perm(self, user, perms, any_perm=False, checker=None):
+    def has_perm(
+        self,
+        user: Union[AbstractUser, AnonymousUser],
+        perms: Union[str, List[str]],
+        any_perm: bool = False,
+        checker: Union[ObjectPermissionChecker, None] = None,
+    ) -> bool:
         """Check if the user has the given permissions to this object.
 
         :param user: the user itself

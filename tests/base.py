@@ -4,12 +4,8 @@ from django.contrib.auth.models import User
 from graphene_django.utils.testing import GraphQLTestCase
 from guardian.shortcuts import assign_perm
 
+from .models import Issue, Milestone, Project
 from .schema import schema
-from .models import (
-    Project,
-    Milestone,
-    Issue,
-)
 
 
 class BaseTestCase(GraphQLTestCase):

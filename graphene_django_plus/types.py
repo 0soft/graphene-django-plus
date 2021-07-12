@@ -1,13 +1,12 @@
 import datetime
 import decimal
+from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar, Union
 
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
 from django.db.models import Prefetch
 from django.db.models.fields import NOT_PROVIDED
-from django.db.models.fields.reverse_related import (
-    ManyToOneRel,
-    ManyToManyRel,
-)
+from django.db.models.fields.reverse_related import ManyToManyRel, ManyToOneRel
 import graphene
 from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
@@ -22,24 +21,15 @@ except ImportError:
     gql_optimizer = None
     _BaseDjangoObjectType = DjangoObjectType
 
-from .perms import (
-    check_perms,
-    check_authenticated,
-)
-from .models import (
-    GuardedModel,
-    GuardedModelManager,
-)
-from .schema import (
-    get_field_schema,
-    FieldKind,
-)
-from .utils import (
-    get_model_fields,
-    update_dict_nested,
-)
+from .models import GuardedModel, GuardedModelManager
+from .perms import check_authenticated, check_perms
+from .schema import FieldKind, get_field_schema
+from .utils import get_model_fields, update_dict_nested
 
+if TYPE_CHECKING:
+    _BaseDjangoObjectType = DjangoObjectType
 
+_T = TypeVar("_T", bound=models.Model)
 schema_registry = {}
 
 
@@ -68,7 +58,7 @@ def schema_for_field(field, name):
             items = items.items()
 
         choices = []
-        for (original_v, label), (n, value, desc) in zip(items, get_choices(items)):
+        for (_original_v, label), (n, _value, _desc) in zip(items, get_choices(items)):
             choices.append(
                 {
                     "label": label,
@@ -264,31 +254,35 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     """Model type options for :class:`ModelType`."""
 
     #: If we shuld allow unauthenticated users to query for this model.
-    allow_unauthenticated = False
+    allow_unauthenticated: bool = False
 
     #: A list of django permissions to check if the user has permission to
     #: query this model.
-    permissions = None
+    permissions: Optional[List[str]] = None
 
     #: If any permission should allow the user to query this model.
-    permissions_any = True
+    permissions_any: bool = True
 
     #: A list of guardian object permissions to check if the user has
     #: permission to query the model object.
-    object_permissions = None
+    object_permissions: Optional[List[str]] = None
 
     #: If any object permission should allow the user to query this model.
-    object_permissions_any = True
+    object_permissions_any: bool = True
 
     #: The fields schema for the schema query
-    fields_schema = None
+    fields_schema: Optional[dict] = None
 
 
-class ModelType(_BaseDjangoObjectType):
+class ModelType(_BaseDjangoObjectType, Generic[_T]):
     """Base type with automatic optimizations and permissions checking."""
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def __class_getitem__(cls, *args, **kwargs):
+        return cls
 
     @classmethod
     def __init_subclass_with_meta__(
@@ -301,7 +295,6 @@ class ModelType(_BaseDjangoObjectType):
         object_permissions_any=True,
         fields_schema=None,
         allow_unauthenticated=False,
-        prefetch=None,
         only_fields=None,
         fields=None,
         exclude_fields=None,
@@ -309,7 +302,7 @@ class ModelType(_BaseDjangoObjectType):
         **kwargs,
     ):
         if not _meta:
-            _meta = DjangoObjectTypeOptions(cls)
+            _meta = ModelTypeOptions(cls)
 
         _meta.permissions = permissions or []
         _meta.permissions_any = permissions_any
@@ -354,7 +347,11 @@ class ModelType(_BaseDjangoObjectType):
         }
 
     @classmethod
-    def get_queryset(cls, qs, info):
+    def get_queryset(
+        cls,
+        qs: Union[models.QuerySet[_T], models.Manager[_T]],
+        info,
+    ) -> models.QuerySet[_T]:
         """Get the queryset checking for permissions and optimizing the query.
 
         Override the default graphene's `get_queryset` to check for permissions
@@ -391,7 +388,7 @@ class ModelType(_BaseDjangoObjectType):
         return ret
 
     @classmethod
-    def get_node(cls, info, id):
+    def get_node(cls, info, id_) -> Optional[_T]:
         """Get the node instance given the relay global id."""
         # NOTE: get_queryset will filter allowed models for the user so
         # this will return None if he is not allowed to retrieve this
@@ -401,12 +398,12 @@ class ModelType(_BaseDjangoObjectType):
             # but passing objects from get_queryset to keep our preferences
             try:
                 instance = cls.get_queryset(cls._meta.model.objects, info).get(
-                    pk=id,
+                    pk=id_,
                 )
             except cls._meta.model.DoesNotExist:
                 instance = None
         else:
-            instance = super().get_node(info, id)
+            instance = super().get_node(info, id_)
 
         if instance is not None and not cls.check_object_permissions(info.context.user, instance):
             return None
@@ -414,7 +411,7 @@ class ModelType(_BaseDjangoObjectType):
         return instance
 
     @classmethod
-    def check_permissions(cls, user):
+    def check_permissions(cls, user: Union[AbstractUser, AnonymousUser]) -> bool:
         """Check permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or
@@ -429,7 +426,11 @@ class ModelType(_BaseDjangoObjectType):
         return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
-    def check_object_permissions(cls, user, instance):
+    def check_object_permissions(
+        cls,
+        user: Union[AbstractUser, AnonymousUser],
+        instance: _T,
+    ) -> bool:
         """Check object permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or

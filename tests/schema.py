@@ -1,24 +1,16 @@
 import graphene
 from graphene import relay
 
-from graphene_django_plus.types import ModelType
-from graphene_django_plus.fields import (
-    CountableConnection,
-    OrderableConnectionField,
-)
-from graphene_django_plus.queries import Query as _Query
+from graphene_django_plus.fields import CountableConnection, OrderableConnectionField
 from graphene_django_plus.mutations import (
     ModelCreateMutation,
-    ModelUpdateMutation,
     ModelDeleteMutation,
+    ModelUpdateMutation,
 )
+from graphene_django_plus.queries import Query as _Query
+from graphene_django_plus.types import ModelType
 
-from .models import (
-    Project,
-    Milestone,
-    Issue,
-    MilestoneComment,
-)
+from .models import Issue, Milestone, MilestoneComment, Project
 
 # Types
 

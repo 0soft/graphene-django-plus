@@ -15,11 +15,12 @@ class CountableConnection(relay.Connection):
         description="The total count of objects in this query.",
     )
 
-    def resolve_total_count(root, info, **kwargs):
-        if hasattr(root, "length"):
-            return root.length
+    @staticmethod
+    def resolve_total_count(parent, info, **kwargs):
+        if hasattr(parent, "length"):
+            return parent.length
 
-        return root.iterable.count()
+        return parent.iterable.count()
 
 
 class OrderableConnectionField(DjangoFilterConnectionField):

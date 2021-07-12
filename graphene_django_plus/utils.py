@@ -1,9 +1,11 @@
 import collections
 import itertools
 
+from django.db import models
 from django.db.models.fields.reverse_related import ManyToOneRel
 import graphene
 from graphene.types.mountedtype import MountedType
+from graphene.types.objecttype import ObjectType
 from graphene.types.structures import Structure
 from graphene.types.unmountedtype import UnmountedType
 from graphene.types.utils import yank_fields_from_attrs
@@ -14,7 +16,7 @@ from graphql_relay import from_global_id
 
 _registry = get_global_registry()
 _extra_register = {}
-_input_registry = dict()
+_input_registry = {}
 
 
 def _resolve_nodes(ids, graphene_type=None):
@@ -32,9 +34,8 @@ def _resolve_nodes(ids, graphene_type=None):
             invalid_ids.append(graphql_id)
             continue
 
-        if used_type:
-            if str(used_type) != node_type:
-                raise AssertionError("Must receive a {} id.".format(str(used_type)))
+        if used_type and str(used_type) != node_type:
+            raise AssertionError("Must receive a {} id.".format(str(used_type)))
 
         used_type = node_type
         pks.append(_id)
@@ -64,9 +65,9 @@ def _get_input_attrs(object_type):
         if not isinstance(value, (MountedType, UnmountedType)):
             continue
 
-        if isinstance(value, Structure) and issubclass(value.of_type, graphene.ObjectType):
+        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):
             value = type(value)(_input_registry[value.of_type])
-        elif isinstance(value, graphene.ObjectType):
+        elif isinstance(value, ObjectType):
             value = _input_registry[value.of_type]
 
         new[attr] = value
@@ -81,9 +82,9 @@ def register_type(graphene_type):
     return graphene_type
 
 
-def get_node(id, graphene_type=None):
+def get_node(id_, graphene_type=None):
     """Get a node given the relay id."""
-    node_type, _id = from_global_id(id)
+    node_type, _id = from_global_id(id_)
     if not graphene_type:
         graphene_type = _resolve_graphene_type(node_type)
 
@@ -145,15 +146,15 @@ def get_inputtype(name, object_type):
     return inputtype
 
 
-def get_model_fields(model):
+def get_model_fields(model: models.Model):
     fields = [
-        (field.name, field) for field in sorted(list(model._meta.fields + model._meta.many_to_many))
+        (field.name, field) for field in sorted(model._meta.fields + model._meta.many_to_many)
     ]
     fields.extend(
         [
             (field.related_name or field.name + "_set", field)
             for field in sorted(
-                list(model._meta.related_objects),
+                model._meta.related_objects,
                 key=lambda field: field.name,
             )
             if not isinstance(field, ManyToOneRel) or field.remote_field.null
@@ -162,7 +163,7 @@ def get_model_fields(model):
     return fields
 
 
-def update_dict_nested(d, u):
+def update_dict_nested(d: dict, u: dict) -> dict:
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
             d[k] = update_dict_nested(d.get(k, {}), v)
