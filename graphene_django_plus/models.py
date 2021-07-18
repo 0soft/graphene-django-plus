@@ -2,6 +2,7 @@ import collections
 from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union
 
 try:
+    from guardian.conf import settings as guardian_settings
     from guardian.core import ObjectPermissionChecker
     from guardian.shortcuts import get_objects_for_user
 
@@ -34,6 +35,13 @@ def _separate_perms(
     return list(other_perms), list(own_perms)
 
 
+def _has_anonymous_user():
+    if not has_guardian:
+        return False
+
+    return guardian_settings.ANONYMOUS_USER_NAME is not None
+
+
 class GuardedModelManager(models.Manager[_T]):
     """Model manager that integrates with guardian to check for permissions."""
 
@@ -41,20 +49,27 @@ class GuardedModelManager(models.Manager[_T]):
         self,
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
-        any_perm: bool = False,
+        any_perm: bool = True,
         with_superuser: bool = True,
     ) -> QuerySet[_T]:
         """Get a queryset filtered by perms for the user.
 
         :param user: the user itself
         :param perms: a string or list of perms to check for
-        :param any_perm: if any perm or all perms should be cosidered
+        :param any_perm: if any perm or all perms should be considered
         :param with_superuser: if a superuser should skip the checks
         """
+        # No guardian means we are not checking perms
         if not has_guardian:
             return self.all()
 
+        # In case the user is anonymous we don't have an anonymous user set,
+        # then we can't return anything.
+        if isinstance(user, AnonymousUser) and not _has_anonymous_user():
+            return self.none()
+
         perms = [perms] if isinstance(perms, str) else perms
+        perms = [p.split(".", 1)[1] if "." in p else p for p in perms]
 
         return get_objects_for_user(
             user,
@@ -77,9 +92,16 @@ class GuardedRelatedManager(GuardedModelManager[_TR]):
         any_perm: bool = True,
         with_superuser: bool = True,
     ) -> models.QuerySet[_TR]:
-        if not user or not user.is_authenticated:
+        # No guardian means we are not checking perms
+        if not has_guardian:
+            return self.all()
+
+        # In case the user is anonymous we don't have an anonymous user set,
+        # then we can't return anything.
+        if isinstance(user, AnonymousUser) and not _has_anonymous_user():
             return self.none()
 
+        perms = [perms] if isinstance(perms, str) else perms
         other_perms, own_perms = _separate_perms(perms, self.model)
 
         if own_perms:
@@ -120,7 +142,7 @@ class GuardedRelatedManager(GuardedModelManager[_TR]):
             return own_qs
         elif other_qs is not None:
             return other_qs
-        else:
+        else:  # pragma: nocover
             raise AssertionError
 
 
@@ -138,31 +160,39 @@ class GuardedModel(models.Model):
         self,
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
-        any_perm: bool = False,
+        any_perm: bool = True,
         checker: Union[ObjectPermissionChecker, None] = None,
     ) -> bool:
         """Check if the user has the given permissions to this object.
 
         :param user: the user itself
         :param perms: a string or list of perms to check for
-        :param any_perm: if any perm or all perms should be cosidered
+        :param any_perm: if any perm or all perms should be considered
         :param checker: a `guardian.core.ObjectPermissionChecker` that
             can be used to optimize performance in checking for permissions
         """
+        # No guardian means we are not checking perms
         if not has_guardian:
             return True
 
-        checker = checker or ObjectPermissionChecker(user)
-        perms = [perms] if isinstance(perms, str) else perms
+        # In case the user is anonymous we don't have an anonymous user set,
+        # then we can't return anything.
+        if isinstance(user, AnonymousUser) and not _has_anonymous_user():
+            return False
 
+        perms = [perms] if isinstance(perms, str) else perms
+        checker = checker or ObjectPermissionChecker(user)
         f = any if any_perm else all
 
         # First try to check if the user has global permissions for this
-        # Otherwise we will check for the objeect itself bellow
+        # Otherwise we will check for the object itself bellow
         if f(user.has_perm(p) for p in perms):
             return True
 
-        return f(checker.has_perm(p, self) for p in perms)
+        # Small performance improvement by mimicing guardian's api
+        perms = [p.split(".", 1)[1] if "." in p else p for p in perms]
+        c_perms = checker.get_perms(self)
+        return f(p in c_perms for p in perms)
 
 
 class GuardedRelatedModel(GuardedModel):
@@ -179,9 +209,19 @@ class GuardedRelatedModel(GuardedModel):
         self,
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
-        any_perm: bool = False,
+        any_perm: bool = True,
         checker: Union[ObjectPermissionChecker, None] = None,
     ) -> bool:
+        # No guardian means we are not checking perms
+        if not has_guardian:
+            return True
+
+        # In case the user is anonymous we don't have an anonymous user set,
+        # then we can't return anything.
+        if isinstance(user, AnonymousUser) and not _has_anonymous_user():
+            return False
+
+        perms = [perms] if isinstance(perms, str) else perms
         checker = checker or ObjectPermissionChecker(user)
         other_perms, own_perms = _separate_perms(perms, self.__class__)
 
@@ -193,7 +233,7 @@ class GuardedRelatedModel(GuardedModel):
                 checker=checker,
             )
         else:
-            own_check = lambda: True
+            own_check = lambda: not any_perm
 
         if other_perms:
             assert self.related_attr is not None
@@ -205,9 +245,9 @@ class GuardedRelatedModel(GuardedModel):
                 checker=checker,
             )
         else:
-            other_check = lambda: True
+            other_check = lambda: not any_perm
 
         f = any if any_perm else all
-        # Using lambdas will short-cut own_check when own_check is True
+        # Using lambdas will shortcut own_check when own_check is True
         # and we are checking for any_perm
         return f(check() for check in [other_check, own_check])

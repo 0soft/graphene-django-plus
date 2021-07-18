@@ -2,7 +2,12 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
-from graphene_django_plus.models import GuardedModel, GuardedModelManager
+from graphene_django_plus.models import (
+    GuardedModel,
+    GuardedModelManager,
+    GuardedRelatedManager,
+    GuardedRelatedModel,
+)
 
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -70,6 +75,9 @@ class Issue(GuardedModel):
             ("can_write", "Can update the issue's information."),
         ]
 
+    if TYPE_CHECKING:
+        comments = RelatedManager["Issue"]()
+
     objects = GuardedModelManager["Issue"]()
 
     kinds = {
@@ -104,6 +112,33 @@ class Issue(GuardedModel):
         blank=True,
         default=None,
         on_delete=models.SET_NULL,
+    )
+
+
+class IssueComment(GuardedRelatedModel):
+    class Meta:
+        permissions = [
+            ("can_moderate", "Can moderate this comment."),
+        ]
+
+    objects = GuardedRelatedManager["IssueComment"]()
+    related_model = "tests.Issue"
+    related_attr = "issue"
+
+    id = models.BigAutoField(  # noqa: A003
+        verbose_name="ID",
+        primary_key=True,
+    )
+    issue = models.ForeignKey(
+        Issue,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="comments",
+        related_query_name="comments",
+    )
+    comment = models.CharField(
+        max_length=255,
     )
 
 

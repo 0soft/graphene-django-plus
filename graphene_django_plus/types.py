@@ -270,6 +270,9 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     #: If any object permission should allow the user to query this model.
     object_permissions_any: bool = True
 
+    #: If superuser should be considered when getting `GuardedModelManager.for_user`
+    object_permissions_with_superuser: bool = True
+
     #: The fields schema for the schema query
     fields_schema: Optional[dict] = None
 
@@ -293,6 +296,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         permissions_any=True,
         object_permissions=None,
         object_permissions_any=True,
+        object_permissions_with_superuser=True,
         fields_schema=None,
         allow_unauthenticated=False,
         only_fields=None,
@@ -308,6 +312,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         _meta.permissions_any = permissions_any
         _meta.object_permissions = object_permissions or []
         _meta.object_permissions_any = object_permissions_any
+        _meta.object_permissions_with_superuser = object_permissions_with_superuser
         _meta.allow_unauthenticated = allow_unauthenticated
 
         _fields_schema = {}
@@ -373,17 +378,17 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
                 info.context.user,
                 cls._meta.object_permissions,
                 any_perm=cls._meta.object_permissions_any,
+                with_superuser=cls._meta.object_permissions_with_superuser,
             )
 
         ret = super().get_queryset(qs, info)
-        if gql_optimizer is None:
-            return ret
-
-        ret = gql_optimizer.query(ret, info)
-        prl = {
-            i.to_attr if isinstance(i, Prefetch) else i: i for i in ret._prefetch_related_lookups
-        }
-        ret._prefetch_related_lookups = tuple(prl.values())
+        if gql_optimizer is not None:
+            ret = gql_optimizer.query(ret, info)
+            prl = {
+                i.to_attr if isinstance(i, Prefetch) else i: i  # type:ignore
+                for i in ret._prefetch_related_lookups
+            }
+            ret._prefetch_related_lookups = tuple(prl.values())
 
         return ret
 

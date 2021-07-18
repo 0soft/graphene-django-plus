@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from graphene_django.utils.testing import GraphQLTestCase
 from guardian.shortcuts import assign_perm
 
-from .models import Issue, Milestone, Project
+from .models import Issue, IssueComment, Milestone, Project
 from .schema import schema
 
 
@@ -54,3 +54,15 @@ class BaseTestCase(GraphQLTestCase):
                 self.unallowed_issues.append(i)
 
             self.issues.append(i)
+
+        self.issues_comments = []
+        self.allowed_issues_comments = []
+        self.unallowed_issues_comments = []
+        for n, i in enumerate(self.issues):
+            for j in range(3):
+                c = IssueComment.objects.create(issue=i, comment=f"{i}: {n}-{j} comment")
+                self.issues_comments.append(c)
+                if i in self.allowed_issues:
+                    self.allowed_issues_comments.append(c)
+                else:
+                    self.unallowed_issues_comments.append(c)

@@ -34,7 +34,7 @@ def _resolve_nodes(ids, graphene_type=None):
             invalid_ids.append(graphql_id)
             continue
 
-        if used_type and str(used_type) != node_type:
+        if used_type and str(used_type) != node_type:  # pragma: nocover
             raise AssertionError("Must receive a {} id.".format(str(used_type)))
 
         used_type = node_type
