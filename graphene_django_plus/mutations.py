@@ -31,8 +31,8 @@ from .utils import get_model_fields, get_node, get_nodes, update_dict_nested
 
 _registry = get_global_registry()
 _T = TypeVar("_T", bound=models.Model)
-_TM = TypeVar("_TM", bound="BaseMutation")
-_TMM = TypeVar("_TMM", bound="ModelMutation")
+_M = TypeVar("_M", bound="BaseMutation")
+_MM = TypeVar("_MM", bound="ModelMutation")
 
 
 def _get_model_name(model):
@@ -82,6 +82,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             (only_fields and name not in only_fields)
             or name in exclude_fields
             or str(name).endswith("+")
+            or name in ["created_at", "updated_at", "archived_at"]
         ):
             continue
 
@@ -167,7 +168,7 @@ class BaseMutationOptions(MutationOptions):
     permissions_any: bool = True
 
     #: If we should allow unauthenticated users to do this mutation
-    allow_unauthenticated: bool = False
+    public: bool = False
 
     #: The input schema for the schema query
     input_schema: Optional[dict] = None
@@ -194,17 +195,19 @@ class BaseMutation(ClientIDMutation):
         cls,
         permissions=None,
         permissions_any=True,
-        allow_unauthenticated=False,
+        public=False,
         input_schema=None,
         _meta=None,
         **kwargs,
     ):
         if not _meta:
             _meta = BaseMutationOptions(cls)
+        if "allow_unauthenticated" in kwargs:
+            raise ImproperlyConfigured("Use 'public' instead of 'allow_unauthenticated'")
 
         _meta.permissions = permissions or []
         _meta.permissions_any = permissions_any
-        _meta.allow_unauthenticated = allow_unauthenticated
+        _meta.public = public
         _meta.input_schema = input_schema or {}
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
@@ -248,7 +251,7 @@ class BaseMutation(ClientIDMutation):
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
         """
-        if not cls._meta.allow_unauthenticated and not check_authenticated(user):
+        if not cls._meta.public and not check_authenticated(user):
             return False
 
         if not cls._meta.permissions:
@@ -257,7 +260,7 @@ class BaseMutation(ClientIDMutation):
         return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
-    def mutate_and_get_payload(cls: Type[_TM], root, info, **data) -> _TM:
+    def mutate_and_get_payload(cls: Type[_M], root, info, **data) -> _M:
         """Mutate checking permissions.
 
         We override the default graphene's method to call
@@ -284,7 +287,7 @@ class BaseMutation(ClientIDMutation):
             return cls(errors=[MutationErrorType(message=msg)])
 
     @classmethod
-    def perform_mutation(cls: Type[_TM], root, info, **data) -> _TM:
+    def perform_mutation(cls: Type[_M], root, info, **data) -> _M:
         """Perform the mutation.
 
         This should be implemented in subclasses to perform the mutation.
@@ -571,7 +574,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_TMM], root, info, **data) -> _TMM:
+    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
         """Perform the mutation.
 
         Create or update the instance, based on the existence of the
@@ -671,7 +674,7 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_TMM], root, info, **data) -> _TMM:
+    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
         """Perform the mutation.
 
         Delete the instance from the database given its `id` attribute

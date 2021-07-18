@@ -3,6 +3,7 @@ import decimal
 from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar, Union
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.db.models import Prefetch
 from django.db.models.fields import NOT_PROVIDED
@@ -254,7 +255,7 @@ class ModelTypeOptions(DjangoObjectTypeOptions):
     """Model type options for :class:`ModelType`."""
 
     #: If we shuld allow unauthenticated users to query for this model.
-    allow_unauthenticated: bool = False
+    public: bool = False
 
     #: A list of django permissions to check if the user has permission to
     #: query this model.
@@ -298,7 +299,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         object_permissions_any=True,
         object_permissions_with_superuser=True,
         fields_schema=None,
-        allow_unauthenticated=False,
+        public=None,
         only_fields=None,
         fields=None,
         exclude_fields=None,
@@ -308,12 +309,15 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         if not _meta:
             _meta = ModelTypeOptions(cls)
 
+        if "allow_unauthenticated" in kwargs:
+            raise ImproperlyConfigured("Use 'public' instead of 'allow_unauthenticated'")
+
         _meta.permissions = permissions or []
         _meta.permissions_any = permissions_any
         _meta.object_permissions = object_permissions or []
         _meta.object_permissions_any = object_permissions_any
         _meta.object_permissions_with_superuser = object_permissions_with_superuser
-        _meta.allow_unauthenticated = allow_unauthenticated
+        _meta.public = public
 
         _fields_schema = {}
         # graphene will handle the deprecated only_fields/exclude_fields for us
@@ -422,7 +426,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
         """
-        if not cls._meta.allow_unauthenticated and not check_authenticated(user):
+        if not cls._meta.public and not check_authenticated(user):
             return False
 
         if not cls._meta.permissions:

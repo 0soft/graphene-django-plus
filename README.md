@@ -106,7 +106,7 @@ class MyModelType(ModelType):
         # If unauthenticated users should be allowed to retrieve any object
         # of this type. This is not dependant on `GuardedModel` and neither
         # `guardian` and is defined as `False` by default
-        allow_unauthenticated = False
+        public = False
 
         # A list of Django model permissions to check. Different from
         # object_permissions, this uses the basic Django's permission system
@@ -214,7 +214,7 @@ class MyModelUpdateMutation(ModelUpdateMutation):
         # If unauthenticated users should be allowed to retrieve any object
         # of this type. This is not dependant on `GuardedModel` and neither
         # `guardian` and is defined as `False` by default
-        allow_unauthenticated = False
+        public = False
 
         # A list of Django model permissions to check. Different from
         # object_permissions, this uses the basic Django's permission system
