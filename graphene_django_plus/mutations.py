@@ -31,8 +31,8 @@ from .utils import get_model_fields, get_node, get_nodes, update_dict_nested
 
 _registry = get_global_registry()
 _T = TypeVar("_T", bound=models.Model)
-_M = TypeVar("_M", bound="BaseMutation")
-_MM = TypeVar("_MM", bound="ModelMutation")
+_TM = TypeVar("_TM", bound="BaseMutation")
+_TMM = TypeVar("_TMM", bound="ModelMutation")
 
 
 def _get_model_name(model):
@@ -258,7 +258,7 @@ class BaseMutation(ClientIDMutation):
         return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
-    def mutate_and_get_payload(cls: Type[_M], root, info, **data) -> _M:
+    def mutate_and_get_payload(cls: Type[_TM], root, info, **data) -> _TM:
         """Mutate checking permissions.
 
         We override the default graphene's method to call
@@ -285,7 +285,7 @@ class BaseMutation(ClientIDMutation):
             return cls(errors=[MutationErrorType(message=msg)])
 
     @classmethod
-    def perform_mutation(cls: Type[_M], root, info, **data) -> _M:
+    def perform_mutation(cls: Type[_TM], root, info, **data) -> _TM:
         """Perform the mutation.
 
         This should be implemented in subclasses to perform the mutation.
@@ -572,7 +572,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
+    def perform_mutation(cls: Type[_TMM], root, info, **data) -> _TMM:
         """Perform the mutation.
 
         Create or update the instance, based on the existence of the
@@ -672,7 +672,7 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
+    def perform_mutation(cls: Type[_TMM], root, info, **data) -> _TMM:
         """Perform the mutation.
 
         Delete the instance from the database given its `id` attribute
