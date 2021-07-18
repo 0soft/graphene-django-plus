@@ -82,7 +82,6 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             (only_fields and name not in only_fields)
             or name in exclude_fields
             or str(name).endswith("+")
-            or name in ["created_at", "updated_at", "archived_at"]
         ):
             continue
 
