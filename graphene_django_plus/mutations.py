@@ -16,6 +16,7 @@ from django.db.models.fields.reverse_related import ManyToManyRel, ManyToOneRel
 import graphene
 from graphene.relay.mutation import ClientIDMutation
 from graphene.types.mutation import MutationOptions
+from graphene.types.objecttype import ObjectType
 from graphene.types.utils import yank_fields_from_attrs
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import convert_django_field_with_choices
@@ -219,13 +220,19 @@ class BaseMutation(ClientIDMutation):
         }
 
     @classmethod
-    def get_node(cls, info, node_id, field="id", only_type=None):
+    def get_node(
+        cls,
+        info,
+        node_id: str,
+        field: str = "id",
+        only_type: Optional[ObjectType] = None,
+    ) -> Any:
         """Get the node object given a relay global id."""
         if not node_id:
             return None
 
         try:
-            node = get_node(node_id, only_type)
+            node = get_node(node_id, graphene_type=only_type)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
@@ -235,17 +242,23 @@ class BaseMutation(ClientIDMutation):
         return node
 
     @classmethod
-    def get_nodes(cls, ids, field, only_type=None):
+    def get_nodes(
+        cls,
+        info,
+        ids: List[str],
+        field: str,
+        only_type: Optional[ObjectType] = None,
+    ) -> List[Any]:
         """Get a list of node objects given a list of relay global ids."""
         try:
-            instances = get_nodes(ids, only_type)
+            instances = get_nodes(ids, graphene_type=only_type)
         except GraphQLError as e:
             raise ValidationError({field: str(e)})
 
         return instances
 
     @classmethod
-    def check_permissions(cls, user: Union[AbstractUser, AnonymousUser]) -> bool:
+    def check_permissions(cls, info, user: Union[AbstractUser, AnonymousUser]) -> bool:
         """Check permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or
@@ -270,7 +283,7 @@ class BaseMutation(ClientIDMutation):
         The mutation itself should be defined in :meth:`.perform_mutation`.
         """
         try:
-            if not cls.check_permissions(info.context.user):
+            if not cls.check_permissions(info, info.context.user):
                 raise PermissionDenied()
 
             response = cls.perform_mutation(root, info, **data)
@@ -390,7 +403,11 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def check_object_permissions(cls, user: Union[AbstractUser, AnonymousUser], instance) -> bool:
+    def check_object_permissions(
+        cls,
+        info,
+        instance: _T,
+    ) -> bool:
         """Check object permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or
@@ -407,7 +424,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
             return True
 
         return instance.has_perm(
-            user,
+            info.context.user,
             cls._meta.object_permissions,
             any_perm=cls._meta.object_permissions_any,
         )
@@ -417,7 +434,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         """Get an object given a relay global id."""
         model_type = _registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node(info, obj_id, only_type=model_type)
-        if not cls.check_object_permissions(info.context.user, instance):
+        if not cls.check_object_permissions(info, instance):
             raise PermissionDenied()
         return cast(_T, instance)
 
@@ -510,7 +527,7 @@ class ModelMutation(BaseModelMutation[_T]):
         abstract = True
 
     @classmethod
-    def create_instance(cls, instance: _T, cleaned_data: dict) -> _T:
+    def create_instance(cls, info, instance: _T, cleaned_data: Dict[str, Any]) -> _T:
         """Create a model instance given the already cleaned input data."""
         opts = instance._meta
 
@@ -527,14 +544,14 @@ class ModelMutation(BaseModelMutation[_T]):
                 if isinstance(f, models.FileField):
                     data = False
                 if not f.null:
-                    data = f._get_default()
+                    data = f._get_default()  # type:ignore
 
             f.save_form_data(instance, data)
 
         return instance
 
     @classmethod
-    def clean_instance(cls, instance: _T, clean_input: dict) -> _T:
+    def clean_instance(cls, info, instance: _T, clean_input: Dict[str, Any]) -> _T:
         """Validate the instance by calling its `.full_clean()` method."""
         try:
             instance.full_clean(exclude=cls._meta.exclude_fields)
@@ -545,7 +562,7 @@ class ModelMutation(BaseModelMutation[_T]):
         return instance
 
     @classmethod
-    def clean_input(cls, info, instance: _T, data: dict):
+    def clean_input(cls, info, instance: _T, data: Dict[str, Any]):
         """Clear and normalize the input data."""
         cleaned_input: Dict[str, Any] = {}
 
@@ -556,7 +573,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
             if value is not None and _is_list_of_ids(f_item):
                 # list of IDs field
-                instances = cls.get_nodes(value, f_name) if value else []
+                instances = cls.get_nodes(info, value, f_name) if value else []
                 cleaned_input[f_name] = instances
             elif value is not None and _is_id_field(f_item):
                 # ID field
@@ -589,8 +606,8 @@ class ModelMutation(BaseModelMutation[_T]):
             instance = cls._meta.model()
 
         cleaned_input = cls.clean_input(info, instance, data)
-        instance = cls.create_instance(instance, cleaned_input)
-        cls.clean_instance(instance, cleaned_input)
+        instance = cls.create_instance(info, instance, cleaned_input)
+        instance = cls.clean_instance(info, instance, cleaned_input)
         cls.save(info, instance, cleaned_input)
 
         # save m2m and related object's data
@@ -610,10 +627,7 @@ class ModelMutation(BaseModelMutation[_T]):
                 if d is not None:
                     f.save_form_data(instance, d)
 
-        if not checked_permissions and not cls.check_object_permissions(
-            info.context.user,
-            instance,
-        ):
+        if not checked_permissions and not cls.check_object_permissions(info, instance):
             # If we did not check permissions when getting the instance,
             # check if here. The model might check the permissions based on
             # some related objects
@@ -680,7 +694,7 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
         Delete the instance from the database given its `id` attribute
         in the input data.
         """
-        instance = cls.get_instance(info, data.get("id"))
+        instance = cls.get_instance(info, data["id"])
 
         db_id = instance.id
         cls.delete(info, instance)
@@ -689,7 +703,3 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
         return cls(**{cls._meta.return_field_name: instance})
-
-
-# Compatibility with older versions
-BaseModelOperationMutation = ModelOperationMutation

@@ -1,5 +1,6 @@
 import collections
 import itertools
+from typing import List, Optional
 
 from django.db import models
 from django.db.models.fields.reverse_related import ManyToOneRel
@@ -82,16 +83,20 @@ def register_type(graphene_type):
     return graphene_type
 
 
-def get_node(id_, graphene_type=None):
+def get_node(id_: str, graphene_type: Optional[ObjectType] = None):
     """Get a node given the relay id."""
     node_type, _id = from_global_id(id_)
     if not graphene_type:
         graphene_type = _resolve_graphene_type(node_type)
+    assert graphene_type is not None
 
-    return graphene_type._meta.model.objects.get(pk=_id)
+    if issubclass(graphene_type, DjangoObjectType):
+        return graphene_type._meta.model.objects.get(pk=_id)
+    else:
+        return graphene_type.get_node(id_)
 
 
-def get_nodes(ids, graphene_type=None):
+def get_nodes(ids: List[str], graphene_type: Optional[ObjectType] = None):
     """Get a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
@@ -100,6 +105,9 @@ def get_nodes(ids, graphene_type=None):
 
     Raises an error if not all IDs are of the same type.
     """
+    if not ids:  # pragma: nocover
+        raise ValueError("ids list cannot be empty")
+
     nodes_type, pks = _resolve_nodes(ids, graphene_type)
 
     # If `graphene_type` was not provided, check if all resolved types are
@@ -107,26 +115,22 @@ def get_nodes(ids, graphene_type=None):
     # types.
     if nodes_type and not graphene_type:
         graphene_type = _resolve_graphene_type(nodes_type)
+    assert graphene_type is not None
 
-    nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
-    nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
+    if issubclass(graphene_type, DjangoObjectType):
+        nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
+        nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
-    if not nodes:  # pragma: no cover
-        raise GraphQLError(
-            "Could not resolve to a node with the id list of '{}'.".format(
-                ids,
-            ),
-        )
-
-    nodes_pk_list = [str(node.pk) for node in nodes]
-    for pk in pks:
-        if pk not in nodes_pk_list:  # pragma: no cover
-            raise AssertionError(
+        diff = set(pks) - {str(n.pk) for n in nodes}
+        if diff:
+            raise GraphQLError(
                 "There is no node of type {} with pk {}".format(
                     graphene_type,
-                    pk,
+                    ", ".join(diff),
                 )
             )
+    else:
+        nodes = [graphene_type.get_node(id_) for id_ in pks]
 
     return nodes
 

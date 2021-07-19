@@ -1,5 +1,7 @@
 import base64
 
+from graphql.error.base import GraphQLError
+
 from graphene_django_plus.utils import get_nodes
 
 from .base import BaseTestCase
@@ -29,5 +31,5 @@ class TestTypes(BaseTestCase):
 
         issues_with_wrong_id = issues[:]
         issues_with_wrong_id.append(base64.b64encode(b"IssueType:9999").decode())
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(GraphQLError):
             get_nodes(issues_with_wrong_id)
