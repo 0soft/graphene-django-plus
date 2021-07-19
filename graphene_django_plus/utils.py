@@ -1,4 +1,8 @@
-import collections
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
 import itertools
 from typing import List, Optional
 
@@ -66,7 +70,7 @@ def _get_input_attrs(object_type):
         if not isinstance(value, (MountedType, UnmountedType)):
             continue
 
-        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):
+        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):  # type:ignore
             value = type(value)(_input_registry[value.of_type])
         elif isinstance(value, ObjectType):
             value = _input_registry[value.of_type]
@@ -152,7 +156,8 @@ def get_inputtype(name, object_type):
 
 def get_model_fields(model: models.Model):
     fields = [
-        (field.name, field) for field in sorted(model._meta.fields + model._meta.many_to_many)
+        (field.name, field)
+        for field in sorted(model._meta.fields + model._meta.many_to_many)  # type:ignore
     ]
     fields.extend(
         [
@@ -169,8 +174,8 @@ def get_model_fields(model: models.Model):
 
 def update_dict_nested(d: dict, u: dict) -> dict:
     for k, v in u.items():
-        if isinstance(v, collections.abc.Mapping):
-            d[k] = update_dict_nested(d.get(k, {}), v)
+        if isinstance(v, Mapping):
+            d[k] = update_dict_nested(d.get(k, {}), v)  # type:ignore
         else:
             d[k] = v
 

@@ -139,12 +139,20 @@ def get_field_schema_float(field):
     }
 
 
-@get_field_schema.register(models.NullBooleanField)
 @get_field_schema.register(models.BooleanField)
 def get_field_schema_bool(field):
     return {
         "kind": FieldKind.BOOLEAN,
     }
+
+
+if hasattr(models, "NullBooleanField"):
+
+    @get_field_schema.register(models.NullBooleanField)  # type:ignore
+    def get_field_schema_nullbool(field):
+        return {
+            "kind": FieldKind.BOOLEAN,
+        }
 
 
 @get_field_schema.register(models.DateField)

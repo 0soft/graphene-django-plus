@@ -53,8 +53,8 @@ def schema_for_field(field, name):
     else:
         required = not field.blank and field.default is NOT_PROVIDED
 
-    if getattr(field, "choices", None):
-        items = field.choices
+    items = getattr(field, "choices", None)
+    if items is not None:
         if isinstance(items, dict):
             items = items.items()
 
