@@ -15,7 +15,7 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
 from django.db.models.query import QuerySet
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from guardian.core import ObjectPermissionChecker  # noqa: F811
 
 _T = TypeVar("_T", bound="GuardedModel")

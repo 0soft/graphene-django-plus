@@ -27,7 +27,7 @@ from .perms import check_authenticated, check_perms
 from .schema import FieldKind, get_field_schema
 from .utils import get_model_fields, update_dict_nested
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     _BaseDjangoObjectType = DjangoObjectType
 
 _T = TypeVar("_T", bound=models.Model)

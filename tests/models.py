@@ -9,7 +9,7 @@ from graphene_django_plus.models import (
     GuardedRelatedModel,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from django.db.models.manager import RelatedManager
 
 
@@ -17,7 +17,7 @@ class Project(models.Model):
 
     objects = models.Manager["Project"]()
 
-    if TYPE_CHECKING:
+    if TYPE_CHECKING:  # pragma: nocover
         milestones = RelatedManager["Milestone"]()
 
     id = models.BigAutoField(  # noqa: A003
@@ -45,7 +45,7 @@ class Milestone(models.Model):
 
     objects = models.Manager["Milestone"]()
 
-    if TYPE_CHECKING:
+    if TYPE_CHECKING:  # pragma: nocover
         issues = RelatedManager["Issue"]()
 
     id = models.BigAutoField(  # noqa: A003
@@ -75,7 +75,7 @@ class Issue(GuardedModel):
             ("can_write", "Can update the issue's information."),
         ]
 
-    if TYPE_CHECKING:
+    if TYPE_CHECKING:  # pragma: nocover
         comments = RelatedManager["Issue"]()
 
     objects = GuardedModelManager["Issue"]()
