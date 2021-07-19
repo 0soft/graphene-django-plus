@@ -4,9 +4,8 @@
 import collections
 import collections.abc
 import itertools
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, cast
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, cast
 
-from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.core.exceptions import NON_FIELD_ERRORS, ImproperlyConfigured
 from django.core.exceptions import PermissionDenied as DJPermissionDenied
 from django.core.exceptions import ValidationError
@@ -258,12 +257,14 @@ class BaseMutation(ClientIDMutation):
         return instances
 
     @classmethod
-    def check_permissions(cls, info, user: Union[AbstractUser, AnonymousUser]) -> bool:
+    def check_permissions(cls, info) -> bool:
         """Check permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
         """
+        user = info.context.user
+
         if not cls._meta.public and not check_authenticated(user):
             return False
 
@@ -283,7 +284,7 @@ class BaseMutation(ClientIDMutation):
         The mutation itself should be defined in :meth:`.perform_mutation`.
         """
         try:
-            if not cls.check_permissions(info, info.context.user):
+            if not cls.check_permissions(info):
                 raise PermissionDenied()
 
             response = cls.perform_mutation(root, info, **data)
