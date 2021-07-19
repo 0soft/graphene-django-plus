@@ -1,4 +1,7 @@
-from django.conf.urls import url
+try:
+    from django.conf.urls import re_path as url  # type:ignore
+except ImportError:
+    from django.conf.urls import url
 
 from graphene_django_plus.views import GraphQLView
 

@@ -54,8 +54,8 @@ def schema_for_field(field, name):
         required = not field.blank and field.default is NOT_PROVIDED
 
     items = getattr(field, "choices", None)
-    if items is not None:
-        if isinstance(items, dict):
+    if items:
+        if isinstance(items, dict):  # pragma:nocover
             items = items.items()
 
         choices = []

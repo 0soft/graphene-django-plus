@@ -1,4 +1,7 @@
-import collections
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union
 
 try:
@@ -23,7 +26,7 @@ _TR = TypeVar("_TR", bound="GuardedRelatedModel")
 
 
 def _separate_perms(
-    perms: collections.Iterable,
+    perms: Iterable,
     model: Type[models.Model],
 ) -> Tuple[List[str], List[str]]:
     perms = set(perms)
