@@ -87,7 +87,7 @@ def register_type(graphene_type):
     return graphene_type
 
 
-def get_node(id_: str, graphene_type: Optional[ObjectType] = None):
+def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None):
     """Get a node given the relay id."""
     node_type, _id = from_global_id(id_)
     if not graphene_type:
@@ -97,10 +97,10 @@ def get_node(id_: str, graphene_type: Optional[ObjectType] = None):
     if issubclass(graphene_type, DjangoObjectType):
         return graphene_type._meta.model.objects.get(pk=_id)
     else:
-        return graphene_type.get_node(id_)
+        return graphene_type.get_node(info, id_)
 
 
-def get_nodes(ids: List[str], graphene_type: Optional[ObjectType] = None):
+def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None):
     """Get a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
@@ -134,7 +134,7 @@ def get_nodes(ids: List[str], graphene_type: Optional[ObjectType] = None):
                 )
             )
     else:
-        nodes = [graphene_type.get_node(id_) for id_ in pks]
+        nodes = [graphene_type.get_node(info, id_) for id_ in pks]
 
     return nodes
 

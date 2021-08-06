@@ -231,7 +231,7 @@ class BaseMutation(ClientIDMutation):
             return None
 
         try:
-            node = get_node(node_id, graphene_type=only_type)
+            node = get_node(info, node_id, graphene_type=only_type)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
@@ -250,7 +250,7 @@ class BaseMutation(ClientIDMutation):
     ) -> List[Any]:
         """Get a list of node objects given a list of relay global ids."""
         try:
-            instances = get_nodes(ids, graphene_type=only_type)
+            instances = get_nodes(info, ids, graphene_type=only_type)
         except GraphQLError as e:
             raise ValidationError({field: str(e)})
 
