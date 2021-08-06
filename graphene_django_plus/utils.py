@@ -82,8 +82,8 @@ def _get_input_attrs(object_type):
 
 def register_type(graphene_type):
     """Register an extra type to be resolved in mutations."""
-    assert issubclass(graphene_type, DjangoObjectType)
-    _extra_register[graphene_type._meta.model] = graphene_type
+    assert issubclass(graphene_type, graphene.ObjectType)
+    _extra_register[getattr(graphene_type._meta, "model", None)] = graphene_type
     return graphene_type
 
 
