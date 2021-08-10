@@ -97,7 +97,7 @@ def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None):
     if issubclass(graphene_type, DjangoObjectType):
         return graphene_type._meta.model.objects.get(pk=_id)
     else:
-        return graphene_type.get_node(info, id_)
+        return graphene_type.get_node(info, _id)
 
 
 def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None):
