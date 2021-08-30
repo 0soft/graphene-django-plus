@@ -205,7 +205,7 @@ class GuardedRelatedModel(GuardedModel):
         abstract = True
 
     objects = GuardedRelatedManager["GuardedRelatedModel"]()
-    related_model: Union[GuardedModel, str]
+    related_model: Union[Type[GuardedModel], str]
     related_attr: str
 
     def has_perm(

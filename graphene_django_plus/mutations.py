@@ -123,15 +123,19 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             f = convert_django_field_with_choices(field, _registry)
 
         if required_fields is not None:
-            f.kwargs["required"] = name in required_fields
+            required = name in required_fields
+            f.kwargs["required"] = required  # type:ignore
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
-                f.kwargs["required"] = not field.null
+                required = not field.null
             else:
-                f.kwargs["required"] = not field.blank and field.default is NOT_PROVIDED
+                required = not field.blank and field.default is NOT_PROVIDED
+
+            f.kwargs["required"] = required  # type:ignore
 
         s = schema_for_field(field, name)
-        s["validation"]["required"] = f.kwargs["required"]
+        required = f.kwargs["required"]  # type:ignore
+        s["validation"]["required"] = required
 
         ret[name] = {
             "field": f,
