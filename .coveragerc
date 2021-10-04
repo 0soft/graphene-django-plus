@@ -1,6 +1,12 @@
 [run]
 source = graphene_django_plus
-omit = .venv/**
+omit =
+  *urls.py,
+  .venv/**
 
 [report]
 precision = 2
+exclude_lines =
+    pragma: nocover
+    pragma:nocover
+    if TYPE_CHECKING:
