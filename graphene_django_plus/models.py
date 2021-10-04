@@ -229,7 +229,8 @@ class GuardedRelatedModel(GuardedModel):
         other_perms, own_perms = _separate_perms(perms, self.__class__)
 
         if own_perms:
-            own_check = lambda: super().has_perm(
+            super_has_perm = super().has_perm
+            own_check = lambda: super_has_perm(
                 user,
                 list(own_perms),
                 any_perm=any_perm,
