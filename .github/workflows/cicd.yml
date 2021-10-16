@@ -51,8 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, tests]
     if:
-      ${{ needs.lint-black.result == 'success' &&
-          needs.lint-flake8.result == 'success' &&
+      ${{ needs.lint.result == 'success' &&
           needs.tests.result == 'success' &&
           github.event.action == 'released' }}
 
