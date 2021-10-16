@@ -20,7 +20,7 @@ class CountableConnection(relay.Connection):
         if hasattr(parent, "length"):
             return parent.length
 
-        return parent.iterable.count()
+        return parent.iterable.count()  # pragma:nocover
 
 
 class OrderableConnectionField(DjangoFilterConnectionField):

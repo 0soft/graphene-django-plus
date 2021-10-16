@@ -444,7 +444,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         return cast(_T, instance)
 
     @classmethod
-    def before_save(cls, info, instance: _T, cleaned_input: Optional[dict] = None):
+    def before_save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "before save" operations.
 
         Override this to perform any operation on the instance
@@ -453,7 +453,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def after_save(cls, info, instance: _T, cleaned_input: Optional[dict] = None):
+    def after_save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "after save" operations.
 
         Override this to perform any operation on the instance
@@ -462,7 +462,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def save(cls, info, instance: _T, cleaned_input: Optional[dict] = None):
+    def save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
         """Save the instance to the database.
 
         To do something with the instance "before" or "after" saving it,
@@ -470,6 +470,24 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         """
         cls.before_save(info, instance, cleaned_input=cleaned_input)
         instance.save()
+
+        # save m2m and related object's data
+        for f in itertools.chain(
+            instance._meta.many_to_many,
+            instance._meta.related_objects,
+            instance._meta.private_fields,
+        ):
+            if isinstance(f, (ManyToOneRel, ManyToManyRel)):
+                # Handle reverse side relationships.
+                d = cleaned_input.get(f.related_name or f.name + "_set", None)
+                if d is not None:
+                    target_field = getattr(instance, f.related_name or f.name + "_set")
+                    target_field.set(d)
+            elif hasattr(f, "save_form_data"):
+                d = cleaned_input.get(f.name, None)
+                if d is not None:
+                    f.save_form_data(instance, d)
+
         cls.after_save(info, instance, cleaned_input=cleaned_input)
 
     @classmethod
@@ -614,23 +632,6 @@ class ModelMutation(BaseModelMutation[_T]):
         instance = cls.create_instance(info, instance, cleaned_input)
         instance = cls.clean_instance(info, instance, cleaned_input)
         cls.save(info, instance, cleaned_input)
-
-        # save m2m and related object's data
-        for f in itertools.chain(
-            instance._meta.many_to_many,
-            instance._meta.related_objects,
-            instance._meta.private_fields,
-        ):
-            if isinstance(f, (ManyToOneRel, ManyToManyRel)):
-                # Handle reverse side relationships.
-                d = cleaned_input.get(f.related_name or f.name + "_set", None)
-                if d is not None:
-                    target_field = getattr(instance, f.related_name or f.name + "_set")
-                    target_field.set(d)
-            elif hasattr(f, "save_form_data"):
-                d = cleaned_input.get(f.name, None)
-                if d is not None:
-                    f.save_form_data(instance, d)
 
         if not checked_permissions and not cls.check_object_permissions(info, instance):
             # If we did not check permissions when getting the instance,
