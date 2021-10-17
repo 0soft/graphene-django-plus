@@ -1,7 +1,6 @@
 import graphene
 
-from .types import ResolverInfo
-from .types import SchemaType, schema_registry
+from .types import ResolverInfo, SchemaType, schema_registry
 
 
 class Query:
