@@ -26,7 +26,7 @@ from .exceptions import PermissionDenied
 from .models import GuardedModel
 from .perms import check_authenticated, check_perms
 from .settings import graphene_django_plus_settings
-from .types import MutationErrorType, UploadType, schema_for_field, schema_registry
+from .types import MutationErrorType, ResolverInfo, UploadType, schema_for_field, schema_registry
 from .utils import get_model_fields, get_node, get_nodes, update_dict_nested
 
 _registry = get_global_registry()
@@ -225,7 +225,7 @@ class BaseMutation(ClientIDMutation):
     @classmethod
     def get_node(
         cls,
-        info,
+        info: ResolverInfo,
         node_id: str,
         field: str = "id",
         only_type: Optional[ObjectType] = None,
@@ -247,9 +247,9 @@ class BaseMutation(ClientIDMutation):
     @classmethod
     def get_nodes(
         cls,
-        info,
+        info: ResolverInfo,
         ids: List[str],
-        field: str,
+        field: str = "ids",
         only_type: Optional[ObjectType] = None,
     ) -> List[Any]:
         """Get a list of node objects given a list of relay global ids."""
@@ -261,7 +261,7 @@ class BaseMutation(ClientIDMutation):
         return instances
 
     @classmethod
-    def check_permissions(cls, info) -> bool:
+    def check_permissions(cls, info: ResolverInfo) -> bool:
         """Check permissions for the given user.
 
         Subclasses can override this to avoid the permission checking or
@@ -278,7 +278,7 @@ class BaseMutation(ClientIDMutation):
         return check_perms(user, cls._meta.permissions, any_perm=cls._meta.permissions_any)
 
     @classmethod
-    def mutate_and_get_payload(cls: Type[_M], root, info, **data) -> _M:
+    def mutate_and_get_payload(cls: Type[_M], root, info: ResolverInfo, **data) -> _M:
         """Mutate checking permissions.
 
         We override the default graphene's method to call
@@ -305,7 +305,7 @@ class BaseMutation(ClientIDMutation):
             return cls(errors=[MutationErrorType(message=msg)])
 
     @classmethod
-    def perform_mutation(cls: Type[_M], root, info, **data) -> _M:
+    def perform_mutation(cls: Type[_M], root, info: ResolverInfo, **data) -> _M:
         """Perform the mutation.
 
         This should be implemented in subclasses to perform the mutation.
@@ -410,7 +410,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     @classmethod
     def check_object_permissions(
         cls,
-        info,
+        info: ResolverInfo,
         instance: _T,
     ) -> bool:
         """Check object permissions for the given user.
@@ -435,7 +435,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         )
 
     @classmethod
-    def get_instance(cls, info, obj_id: str) -> _T:
+    def get_instance(cls, info: ResolverInfo, obj_id: str) -> _T:
         """Get an object given a relay global id."""
         model_type = _registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node(info, obj_id, only_type=model_type)
@@ -444,7 +444,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         return cast(_T, instance)
 
     @classmethod
-    def before_save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
+    def before_save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "before save" operations.
 
         Override this to perform any operation on the instance
@@ -453,7 +453,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def after_save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
+    def after_save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "after save" operations.
 
         Override this to perform any operation on the instance
@@ -462,7 +462,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def save(cls, info, instance: _T, cleaned_input: Dict[str, Any]):
+    def save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
         """Save the instance to the database.
 
         To do something with the instance "before" or "after" saving it,
@@ -491,7 +491,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         cls.after_save(info, instance, cleaned_input=cleaned_input)
 
     @classmethod
-    def before_delete(cls, info, instance: _T):
+    def before_delete(cls, info: ResolverInfo, instance: _T):
         """Perform "before delete" operations.
 
         Override this to perform any operation on the instance
@@ -500,7 +500,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def after_delete(cls, info, instance: _T):
+    def after_delete(cls, info: ResolverInfo, instance: _T):
         """Perform "after delete" operations.
 
         Override this to perform any operation on the instance
@@ -509,7 +509,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         pass
 
     @classmethod
-    def delete(cls, info, instance: _T):
+    def delete(cls, info: ResolverInfo, instance: _T):
         """Delete the instance from the database.
 
         To do something with the instance "before" or "after" deleting it,
@@ -550,7 +550,7 @@ class ModelMutation(BaseModelMutation[_T]):
         abstract = True
 
     @classmethod
-    def create_instance(cls, info, instance: _T, cleaned_data: Dict[str, Any]) -> _T:
+    def create_instance(cls, info: ResolverInfo, instance: _T, cleaned_data: Dict[str, Any]) -> _T:
         """Create a model instance given the already cleaned input data."""
         opts = instance._meta
 
@@ -574,7 +574,7 @@ class ModelMutation(BaseModelMutation[_T]):
         return instance
 
     @classmethod
-    def clean_instance(cls, info, instance: _T, clean_input: Dict[str, Any]) -> _T:
+    def clean_instance(cls, info: ResolverInfo, instance: _T, clean_input: Dict[str, Any]) -> _T:
         """Validate the instance by calling its `.full_clean()` method."""
         try:
             instance.full_clean(exclude=cls._meta.exclude_fields)
@@ -585,7 +585,7 @@ class ModelMutation(BaseModelMutation[_T]):
         return instance
 
     @classmethod
-    def clean_input(cls, info, instance: _T, data: Dict[str, Any]):
+    def clean_input(cls, info: ResolverInfo, instance: _T, data: Dict[str, Any]):
         """Clear and normalize the input data."""
         cleaned_input: Dict[str, Any] = {}
 
@@ -614,7 +614,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
+    def perform_mutation(cls: Type[_MM], root, info: ResolverInfo, **data) -> _MM:
         """Perform the mutation.
 
         Create or update the instance, based on the existence of the
@@ -694,7 +694,7 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls: Type[_MM], root, info, **data) -> _MM:
+    def perform_mutation(cls: Type[_MM], root, info: ResolverInfo, **data) -> _MM:
         """Perform the mutation.
 
         Delete the instance from the database given its `id` attribute

@@ -1,6 +1,6 @@
 import datetime
 import decimal
-from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, List, Optional, TypeVar, Union
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -8,11 +8,13 @@ from django.db import models
 from django.db.models import Prefetch
 from django.db.models.fields import NOT_PROVIDED
 from django.db.models.fields.reverse_related import ManyToManyRel, ManyToOneRel
+from django.http import HttpRequest as DJHttpRequest
 import graphene
 from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectTypeOptions
+from graphql.execution.base import ResolveInfo
 
 try:
     import graphene_django_optimizer as gql_optimizer
@@ -90,6 +92,14 @@ def schema_for_field(field, name):
     )
 
     return s
+
+
+class HttpRequest(DJHttpRequest):
+    user: Union[AbstractUser, AnonymousUser]
+
+
+class ResolverInfo(ResolveInfo):
+    context: HttpRequest
 
 
 class MutationErrorType(graphene.ObjectType):
@@ -359,7 +369,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
     def get_queryset(
         cls,
         qs: Union[models.QuerySet[_T], models.Manager[_T]],
-        info,
+        info: ResolverInfo,
     ) -> models.QuerySet[_T]:
         """Get the queryset checking for permissions and optimizing the query.
 
@@ -397,7 +407,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         return ret
 
     @classmethod
-    def get_node(cls, info, id_) -> Optional[_T]:
+    def get_node(cls, info: ResolverInfo, id_: Any) -> Optional[_T]:
         """Get the node instance given the relay global id."""
         # NOTE: get_queryset will filter allowed models for the user so
         # this will return None if he is not allowed to retrieve this

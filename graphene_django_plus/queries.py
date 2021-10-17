@@ -1,5 +1,6 @@
 import graphene
 
+from .types import ResolverInfo
 from .types import SchemaType, schema_registry
 
 
@@ -23,9 +24,9 @@ class Query:
     )
 
     @staticmethod
-    def resolve_gql_object_schema(root, info, object_type, **kwargs):
+    def resolve_gql_object_schema(root, info: ResolverInfo, object_type: str):
         return schema_registry.get(object_type, None)
 
     @staticmethod
-    def resolve_gql_object_schema_all(root, info, **kwargs):
+    def resolve_gql_object_schema_all(root, info: ResolverInfo):
         return sorted(schema_registry.values(), key=lambda obj: obj["object_type"])
