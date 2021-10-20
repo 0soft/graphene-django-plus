@@ -80,10 +80,12 @@ def _get_input_attrs(object_type):
     return yank_fields_from_attrs(new, _as=graphene.InputField)
 
 
-def register_type(graphene_type):
+def register_type(graphene_type, name: Optional[str] = None):
     """Register an extra type to be resolved in mutations."""
     assert issubclass(graphene_type, graphene.ObjectType)
-    _extra_register[getattr(graphene_type._meta, "model", None)] = graphene_type
+    if name is None:
+        name = graphene_type._meta.name
+    _extra_register[name] = graphene_type
     return graphene_type
 
 
