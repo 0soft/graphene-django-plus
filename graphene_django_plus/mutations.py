@@ -93,8 +93,13 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             continue
 
         if name == "id":
+            graphene_type = _registry.get_type_for_model(model)
+            description = (
+                f"ID of the "
+                f'"{graphene_type._meta.name if graphene_type else model.__name__}" to mutate'
+            )
             f = graphene.ID(
-                description="The ID of the object.",
+                description=description,
             )
         elif isinstance(field, models.FileField):
             f = UploadType(
