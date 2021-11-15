@@ -1,5 +1,6 @@
 import graphene
 from graphene import relay
+from graphene_django.registry import Registry
 
 from graphene_django_plus.fields import CountableConnection, OrderableConnectionField
 from graphene_django_plus.mutations import (
@@ -11,6 +12,10 @@ from graphene_django_plus.queries import Query as _Query
 from graphene_django_plus.types import ModelType
 
 from .models import Issue, Milestone, MilestoneComment, Project
+
+# Registry
+
+project_name_only_registry = Registry()
 
 # Types
 
@@ -50,12 +55,23 @@ class MilestoneCommentType(ModelType):
         filter_fields = {}
 
 
+class ProjectNameOnlyType(ModelType):
+    class Meta:
+        model = Project
+        fields = ["id", "name"]
+        connection_class = CountableConnection
+        interfaces = [relay.Node]
+        filter_fields = {}
+        registry = project_name_only_registry
+
+
 # Queries
 
 
 class Query(graphene.ObjectType, _Query):
     projects = OrderableConnectionField(ProjectType)
     project = relay.Node.Field(ProjectType)
+    project_name_only = relay.Node.Field(ProjectNameOnlyType)
 
     milestones = OrderableConnectionField(MilestoneType)
     milestone = relay.Node.Field(MilestoneType)
@@ -118,12 +134,19 @@ class IssueDeleteMutation(ModelDeleteMutation):
         ]
 
 
+class ProjectNameOnlyUpdateMutation(ModelUpdateMutation):
+    class Meta:
+        model = Project
+        registry = project_name_only_registry
+
+
 class Mutation(graphene.ObjectType):
     """Milestones mutation."""
 
     project_create = ProjectCreateMutation.Field()
     project_update = ProjectUpdateMutation.Field()
     project_delete = ProjectDeleteMutation.Field()
+    project_update_name = ProjectNameOnlyUpdateMutation.Field()
 
     milestone_create = MilestoneCreateMutation.Field()
     milestone_update = MilestoneUpdateMutation.Field()

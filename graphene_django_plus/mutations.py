@@ -46,8 +46,8 @@ def _get_model_name(model):
     return model_name[:1].lower() + model_name[1:]
 
 
-def _get_output_fields(model, return_field_name):
-    model_type = _registry.get_type_for_model(model)
+def _get_output_fields(model, return_field_name, registry):
+    model_type = registry.get_type_for_model(model)
     if not model_type:  # pragma: no cover
         raise ImproperlyConfigured(
             "Unable to find type for model {} in graphene registry".format(
@@ -55,7 +55,7 @@ def _get_output_fields(model, return_field_name):
             )
         )
     f = graphene.Field(
-        lambda: _registry.get_type_for_model(model),
+        lambda: registry.get_type_for_model(model),
         description="The mutated object.",
     )
     return {return_field_name: f}
@@ -81,7 +81,7 @@ def _get_validation_errors(validation_error):
     return e_list
 
 
-def _get_fields(model, only_fields, exclude_fields, required_fields):
+def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
     ret = collections.OrderedDict()
     for name, field in get_model_fields(model):
         if (
@@ -93,7 +93,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
             continue
 
         if name == "id":
-            graphene_type = _registry.get_type_for_model(model)
+            graphene_type = registry.get_type_for_model(model)
             description = (
                 f"ID of the "
                 f'"{graphene_type._meta.name if graphene_type else model.__name__}" to mutate'
@@ -131,7 +131,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
                 ),
             )
         else:
-            f = convert_django_field_with_choices(field, _registry)
+            f = convert_django_field_with_choices(field, registry)
 
         if required_fields is not None:
             required = name in required_fields
@@ -144,7 +144,7 @@ def _get_fields(model, only_fields, exclude_fields, required_fields):
 
             f.kwargs["required"] = required  # type:ignore
 
-        s = schema_for_field(field, name)
+        s = schema_for_field(field, name, registry)
         required = f.kwargs["required"]  # type:ignore
         s["validation"]["required"] = required
 
@@ -212,6 +212,7 @@ class BaseMutation(ClientIDMutation):
         permissions_any=True,
         public=False,
         input_schema=None,
+        registry=None,
         _meta=None,
         **kwargs,
     ):
@@ -224,6 +225,7 @@ class BaseMutation(ClientIDMutation):
         _meta.permissions_any = permissions_any
         _meta.public = public
         _meta.input_schema = input_schema or {}
+        _meta.registry = registry or _registry
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
@@ -246,7 +248,7 @@ class BaseMutation(ClientIDMutation):
             return None
 
         try:
-            node = get_node(info, node_id, graphene_type=only_type)
+            node = get_node(info, node_id, graphene_type=only_type, registry=cls._meta.registry)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
@@ -265,7 +267,7 @@ class BaseMutation(ClientIDMutation):
     ) -> List[Any]:
         """Get a list of node objects given a list of relay global ids."""
         try:
-            instances = get_nodes(info, ids, graphene_type=only_type)
+            instances = get_nodes(info, ids, graphene_type=only_type, registry=cls._meta.registry)
         except GraphQLError as e:
             raise ValidationError({field: str(e)})
 
@@ -375,6 +377,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         exclude_fields=None,
         only_fields=None,
         input_schema=None,
+        registry=None,
         _meta=None,
         **kwargs,
     ):
@@ -383,12 +386,13 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         if not _meta:
             _meta = ModelMutationOptions(cls)
 
+        registry = registry or _registry
         exclude_fields = exclude_fields or []
         only_fields = only_fields or []
         if not return_field_name:
             return_field_name = _get_model_name(model)
 
-        fdata = _get_fields(model, only_fields, exclude_fields, required_fields)
+        fdata = _get_fields(model, only_fields, exclude_fields, required_fields, registry)
         input_fields = yank_fields_from_attrs(
             {k: v["field"] for k, v in fdata.items()},
             _as=graphene.InputField,
@@ -399,7 +403,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
             input_schema or {},
         )
 
-        fields = _get_output_fields(model, return_field_name)
+        fields = _get_output_fields(model, return_field_name, registry)
 
         _meta.model = model
         _meta.object_permissions = object_permissions or []
@@ -413,6 +417,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
             _meta=_meta,
             input_fields=input_fields,
             input_schema=input_schema,
+            registry=registry,
             **kwargs,
         )
 
@@ -448,8 +453,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     @classmethod
     def get_instance(cls, info: ResolverInfo, obj_id: str) -> _T:
         """Get an object given a relay global id."""
-        model_type = _registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node(info, obj_id, only_type=model_type)
+        instance = cls.get_node(info, obj_id)
         if not cls.check_object_permissions(info, instance):
             raise PermissionDenied()
         return cast(_T, instance)

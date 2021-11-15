@@ -3,13 +3,21 @@ import json
 
 from django.test.utils import override_settings
 import graphene
+from graphene_django.registry import get_global_registry
 from graphql_relay import to_global_id
 
 from graphene_django_plus.mutations import ModelCreateMutation
 
 from .base import BaseTestCase
 from .models import Issue, Milestone, MilestoneComment, Project
-from .schema import IssueType, MilestoneCommentType, ProjectType
+from .schema import (
+    IssueType,
+    MilestoneCommentType,
+    ProjectType,
+    ProjectNameOnlyUpdateMutation,
+    project_name_only_registry,
+    ProjectUpdateMutation,
+)
 
 
 class TestTypes(BaseTestCase):
@@ -261,6 +269,68 @@ class TestTypes(BaseTestCase):
                 }
             },
         )
+
+
+class TestMutationRegistry(BaseTestCase):
+    """Tests with ObjectTypes and Mutations using a different registry than the global registry"""
+
+    def test_mutation_meta_registry(self):
+        """Test having registry information stored in mutation meta"""
+        self.assertEqual(ProjectUpdateMutation._meta.registry, get_global_registry())
+        self.assertNotEqual(ProjectUpdateMutation._meta.registry, project_name_only_registry)
+
+        self.assertNotEqual(ProjectNameOnlyUpdateMutation._meta.registry, get_global_registry())
+        self.assertEqual(ProjectNameOnlyUpdateMutation._meta.registry, project_name_only_registry)
+
+    def test_mutation_with_non_global_registry(self):
+        """Test that update mutation using non global registry is working"""
+        # project
+        p_id = to_global_id("ProjectNameOnlyType", self.project.id)
+        self.assertNotEqual(self.project.name, "XXX")
+        r = self.query(
+            """
+            mutation projectUpdateName {
+              projectUpdateName (input: {id: "%s" name: "XXX"}) {
+                project {
+                  name
+                }
+              }
+            }
+            """
+            % (p_id,)
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {"data": {"projectUpdateName": {"project": {"name": "XXX"}}}},
+        )
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.name, "XXX")
+
+    def test_mutation_name_only(self):
+        """Test that update mutation using non global registry is using correct model type"""
+
+        # project
+        p_id = to_global_id("ProjectNameOnlyType", self.project.id)
+        self.assertNotEqual(self.project.name, "XXX")
+        r = self.query(
+            """
+            mutation projectUpdateName {
+              projectUpdateName (input: {id: "%s" name: "XXX"}) {
+                project {
+                  name
+                  dueDate
+                }
+              }
+            }
+            """
+            % (p_id,)
+        )
+        self.assertEqual(
+            json.loads(r.content)["errors"][0]["message"],
+            'Cannot query field "dueDate" on type "ProjectNameOnlyType".',
+        )
+        self.project.refresh_from_db()
+        self.assertNotEqual(self.project.name, "XXX")
 
 
 class TestMutationRelatedObjects(BaseTestCase):
