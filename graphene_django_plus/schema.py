@@ -44,56 +44,56 @@ class FieldKind(graphene.Enum):
 
 
 @functools.singledispatch
-def get_field_schema(field) -> dict:
+def get_field_schema(field, registry=None) -> dict:
     raise Exception(
         "Don't know how to convert the Django field {} ({})".format(field, field.__class__)
     )
 
 
 @get_field_schema.register(models.CharField)
-def get_field_schema_string(field):
+def get_field_schema_string(field, registry=None):
     return {
         "kind": FieldKind.STRING,
     }
 
 
 @get_field_schema.register(models.TextField)
-def get_field_schema_text(field):
+def get_field_schema_text(field, registry=None):
     return {
         "kind": FieldKind.TEXT,
     }
 
 
 @get_field_schema.register(models.EmailField)
-def get_field_schema_email(field):
+def get_field_schema_email(field, registry=None):
     return {
         "kind": FieldKind.EMAIL,
     }
 
 
 @get_field_schema.register(models.SlugField)
-def get_field_schema_slug(field):
+def get_field_schema_slug(field, registry=None):
     return {
         "kind": FieldKind.SLUG,
     }
 
 
 @get_field_schema.register(models.UUIDField)
-def get_field_schema_uuid(field):
+def get_field_schema_uuid(field, registry=None):
     return {
         "kind": FieldKind.UUID,
     }
 
 
 @get_field_schema.register(models.URLField)
-def get_field_schema_url(field):
+def get_field_schema_url(field, registry=None):
     return {
         "kind": FieldKind.URL,
     }
 
 
 @get_field_schema.register(models.GenericIPAddressField)
-def get_field_schema_ip(field):
+def get_field_schema_ip(field, registry=None):
     return {
         "kind": FieldKind.IP,
     }
@@ -102,7 +102,7 @@ def get_field_schema_ip(field):
 @get_field_schema.register(models.FileField)
 @get_field_schema.register(models.ImageField)
 @get_field_schema.register(models.FilePathField)
-def get_field_schema_file(field):
+def get_field_schema_file(field, registry=None):
     return {
         "kind": FieldKind.FILE,
     }
@@ -114,7 +114,7 @@ def get_field_schema_file(field):
 @get_field_schema.register(models.SmallIntegerField)
 @get_field_schema.register(models.BigIntegerField)
 @get_field_schema.register(models.IntegerField)
-def get_field_schema_int(field):
+def get_field_schema_int(field, registry=None):
     return {
         "kind": FieldKind.INTEGER,
     }
@@ -122,7 +122,7 @@ def get_field_schema_int(field):
 
 @get_field_schema.register(models.DecimalField)
 @get_field_schema.register(models.DurationField)
-def get_field_schema_decimal(field):
+def get_field_schema_decimal(field, registry=None):
     return {
         "kind": FieldKind.DECIMAL,
         "validation": {
@@ -133,14 +133,14 @@ def get_field_schema_decimal(field):
 
 
 @get_field_schema.register(models.FloatField)
-def get_field_schema_float(field):
+def get_field_schema_float(field, registry=None):
     return {
         "kind": FieldKind.FLOAT,
     }
 
 
 @get_field_schema.register(models.BooleanField)
-def get_field_schema_bool(field):
+def get_field_schema_bool(field, registry=None):
     return {
         "kind": FieldKind.BOOLEAN,
     }
@@ -149,28 +149,28 @@ def get_field_schema_bool(field):
 if hasattr(models, "NullBooleanField"):
 
     @get_field_schema.register(models.NullBooleanField)  # type:ignore
-    def get_field_schema_nullbool(field):
+    def get_field_schema_nullbool(field, registry=None):
         return {
             "kind": FieldKind.BOOLEAN,
         }
 
 
 @get_field_schema.register(models.DateField)
-def get_field_schema_date(field):
+def get_field_schema_date(field, registry=None):
     return {
         "kind": FieldKind.DATE,
     }
 
 
 @get_field_schema.register(models.DateTimeField)
-def get_field_schema_datetime(field):
+def get_field_schema_datetime(field, registry=None):
     return {
         "kind": FieldKind.DATETIME,
     }
 
 
 @get_field_schema.register(models.TimeField)
-def get_field_schema_time(field):
+def get_field_schema_time(field, registry=None):
     return {
         "kind": FieldKind.TIME,
     }
@@ -179,9 +179,10 @@ def get_field_schema_time(field):
 @get_field_schema.register(models.ForeignKey)
 @get_field_schema.register(models.OneToOneRel)
 @get_field_schema.register(models.OneToOneField)
-def get_field_schema_fk(field):
+def get_field_schema_fk(field, registry=None):
     model = field.related_model
-    _type = _registry.get_type_for_model(model)
+    registry = registry or _registry
+    _type = registry.get_type_for_model(model)
     return {
         "kind": FieldKind.ID,
         "of_type": _type._meta.name if _type else None,
@@ -191,9 +192,10 @@ def get_field_schema_fk(field):
 @get_field_schema.register(models.ManyToManyField)
 @get_field_schema.register(models.ManyToManyRel)
 @get_field_schema.register(models.ManyToOneRel)
-def get_field_schema_m2m(field):
+def get_field_schema_m2m(field, registry=None):
     model = field.related_model
-    _type = _registry.get_type_for_model(model)
+    registry = registry or _registry
+    _type = registry.get_type_for_model(model)
     return {
         "kind": FieldKind.ID,
         "of_type": _type._meta.name if _type else None,
@@ -203,7 +205,7 @@ def get_field_schema_m2m(field):
 
 @get_field_schema.register(ArrayField)
 @get_field_schema.register(RangeField)
-def get_field_schema_array(field):
+def get_field_schema_array(field, registry=None):
     d = get_field_schema(field.base_field)
     d["multiple"] = True
     return d
@@ -212,7 +214,7 @@ def get_field_schema_array(field):
 @get_field_schema.register(PGJSONField)
 @get_field_schema.register(JSONField)
 @get_field_schema.register(HStoreField)
-def get_field_schema_pg(field):
+def get_field_schema_pg(field, registry=None):
     return {
         "kind": FieldKind.JSON,
     }

@@ -1,5 +1,6 @@
 import base64
 
+from graphene_django.registry import Registry
 from graphql.error.base import GraphQLError
 
 from graphene_django_plus.utils import get_nodes
@@ -30,6 +31,9 @@ class TestTypes(BaseTestCase):
         )
         with self.assertRaises(AssertionError):
             get_nodes(info, issues, ProjectType)
+
+        with self.assertRaises(AssertionError):
+            get_nodes(info, issues, registry=Registry())
 
         issues_with_wrong_id = issues[:]
         issues_with_wrong_id.append(base64.b64encode(b"IssueType:9999").decode())

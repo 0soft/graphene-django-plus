@@ -3,6 +3,7 @@ import json
 from unittest import mock
 
 from graphene_django import DjangoObjectType
+from graphql_relay import to_global_id
 
 from .base import BaseTestCase
 from .schema import IssueType
@@ -467,3 +468,37 @@ class TestTypes(BaseTestCase):
                 json.loads(r.content),
                 {"data": {"issue": None}},
             )
+
+    def test_result_non_global_registry(self):
+        """Test that query using non global registry is working and using correct model type"""
+        # project
+        p_id = to_global_id("ProjectNameOnlyType", self.project.id)
+        r = self.query(
+            """
+            query project {
+              projectNameOnly (id: "%s") {
+                name
+              }
+            }
+            """
+            % (p_id,),
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {"data": {"projectNameOnly": {"name": "Test Project"}}},
+        )
+
+        r = self.query(
+            """
+            query project {
+              projectNameOnly (id: "%s") {
+                cost
+              }
+            }
+            """
+            % (p_id,),
+        )
+        self.assertEqual(
+            json.loads(r.content)["errors"][0]["message"],
+            'Cannot query field "cost" on type "ProjectNameOnlyType".',
+        )

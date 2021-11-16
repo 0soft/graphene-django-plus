@@ -55,8 +55,9 @@ def _resolve_nodes(ids, graphene_type=None):
     return used_type, pks
 
 
-def _resolve_graphene_type(type_name):
-    for _, _type in itertools.chain(_extra_register.items(), _registry._registry.items()):
+def _resolve_graphene_type(type_name, registry=None):
+    registry = registry or _registry
+    for _, _type in itertools.chain(_extra_register.items(), registry._registry.items()):
         if _type._meta.name == type_name:
             return _type
     else:  # pragma: no cover
@@ -89,11 +90,11 @@ def register_type(graphene_type, name: Optional[str] = None):
     return graphene_type
 
 
-def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None):
+def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None, registry=None):
     """Get a node given the relay id."""
     node_type, _id = from_global_id(id_)
     if not graphene_type:
-        graphene_type = _resolve_graphene_type(node_type)
+        graphene_type = _resolve_graphene_type(node_type, registry)
     assert graphene_type is not None
 
     if issubclass(graphene_type, DjangoObjectType):
@@ -102,7 +103,7 @@ def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None):
         return graphene_type.get_node(info, _id)
 
 
-def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None):
+def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None, registry=None):
     """Get a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
@@ -120,7 +121,7 @@ def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None):
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if nodes_type and not graphene_type:
-        graphene_type = _resolve_graphene_type(nodes_type)
+        graphene_type = _resolve_graphene_type(nodes_type, registry)
     assert graphene_type is not None
 
     if issubclass(graphene_type, DjangoObjectType):

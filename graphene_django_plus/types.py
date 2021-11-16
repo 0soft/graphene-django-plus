@@ -13,6 +13,7 @@ import graphene
 from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
 from graphene_django.converter import get_choices
+from graphene_django.registry import get_global_registry
 from graphene_django.types import DjangoObjectTypeOptions
 from graphql.execution.base import ResolveInfo
 
@@ -36,8 +37,9 @@ _T = TypeVar("_T", bound=models.Model)
 schema_registry = {}
 
 
-def schema_for_field(field, name):
-    s = get_field_schema(field)
+def schema_for_field(field, name, registry=None):
+    registry = registry or get_global_registry()
+    s = get_field_schema(field, registry)
 
     default_value = getattr(field, "default", None)
     if default_value is NOT_PROVIDED:
@@ -342,7 +344,8 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
             if _include is not None and name not in _include:
                 continue
 
-            _fields_schema[name] = schema_for_field(field, name)
+            registry = kwargs.get("registry", get_global_registry())
+            _fields_schema[name] = schema_for_field(field, name, registry)
 
         fields_schema = update_dict_nested(
             _fields_schema,
