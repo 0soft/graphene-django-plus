@@ -13,10 +13,10 @@ from .models import Issue, Milestone, MilestoneComment, Project
 from .schema import (
     IssueType,
     MilestoneCommentType,
-    ProjectType,
     ProjectNameOnlyUpdateMutation,
-    project_name_only_registry,
+    ProjectType,
     ProjectUpdateMutation,
+    project_name_only_registry,
 )
 
 
