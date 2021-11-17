@@ -2,7 +2,8 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
-from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union
+
+from typing import List, Tuple, Type, TypeVar, Union
 
 try:
     from guardian.conf import settings as guardian_settings
@@ -17,9 +18,6 @@ from django.apps import apps
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
 from django.db.models.query import QuerySet
-
-if TYPE_CHECKING:  # pragma: nocover
-    from guardian.core import ObjectPermissionChecker  # noqa: F811
 
 _T = TypeVar("_T", bound="GuardedModel")
 _TR = TypeVar("_TR", bound="GuardedRelatedModel")
@@ -164,7 +162,7 @@ class GuardedModel(models.Model):
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
         any_perm: bool = True,
-        checker: Union[ObjectPermissionChecker, None] = None,
+        checker: Union["ObjectPermissionChecker", None] = None,
     ) -> bool:
         """Check if the user has the given permissions to this object.
 
@@ -213,7 +211,7 @@ class GuardedRelatedModel(GuardedModel):
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
         any_perm: bool = True,
-        checker: Union[ObjectPermissionChecker, None] = None,
+        checker: Union["ObjectPermissionChecker", None] = None,
     ) -> bool:
         # No guardian means we are not checking perms
         if not has_guardian:
