@@ -2,12 +2,7 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
-from graphene_django_plus.models import (
-    GuardedModel,
-    GuardedModelManager,
-    GuardedRelatedManager,
-    GuardedRelatedModel,
-)
+from graphene_django_plus.models import GuardedModel, GuardedRelatedModel
 
 if TYPE_CHECKING:  # pragma: nocover
     from django.db.models.manager import RelatedManager
@@ -15,10 +10,7 @@ if TYPE_CHECKING:  # pragma: nocover
 
 class Project(models.Model):
 
-    objects = models.Manager["Project"]()
-
-    if TYPE_CHECKING:  # pragma: nocover
-        milestones = RelatedManager["Milestone"]()
+    milestones: "RelatedManager[Milestone]"
 
     id = models.BigAutoField(  # noqa: A003
         verbose_name="ID",
@@ -43,10 +35,7 @@ class Project(models.Model):
 
 class Milestone(models.Model):
 
-    objects = models.Manager["Milestone"]()
-
-    if TYPE_CHECKING:  # pragma: nocover
-        issues = RelatedManager["Issue"]()
+    issues: "RelatedManager[Issue]"
 
     id = models.BigAutoField(  # noqa: A003
         verbose_name="ID",
@@ -75,10 +64,7 @@ class Issue(GuardedModel):
             ("can_write", "Can update the issue's information."),
         ]
 
-    if TYPE_CHECKING:  # pragma: nocover
-        comments = RelatedManager["Issue"]()
-
-    objects = GuardedModelManager["Issue"]()
+    comments: "RelatedManager[Issue]"
 
     kinds = {
         "b": "Bug",
@@ -121,7 +107,6 @@ class IssueComment(GuardedRelatedModel):
             ("can_moderate", "Can moderate this comment."),
         ]
 
-    objects = GuardedRelatedManager["IssueComment"]()
     related_model = "tests.Issue"
     related_attr = "issue"
 
@@ -143,8 +128,6 @@ class IssueComment(GuardedRelatedModel):
 
 
 class MilestoneComment(models.Model):
-
-    objects = models.Manager["MilestoneComment"]()
 
     id = models.BigAutoField(  # noqa: A003
         verbose_name="ID",

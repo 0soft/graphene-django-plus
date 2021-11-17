@@ -1,4 +1,4 @@
-# graphene-django-plus #
+# graphene-django-plus
 
 [![build status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2F0soft%2Fgraphene-django-plus%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/0soft/graphene-django-plus/goto?ref=master)
 [![docs status](https://img.shields.io/readthedocs/graphene-django-plus.svg)](https://graphene-django-plus.readthedocs.io)
@@ -25,21 +25,21 @@ pip install graphene-django-optimizer django-guardian
 
 ## What it does
 
-* Provides some base types for Django Models to improve querying them with:
-    * Unauthenticated user handling
-    * Automatic optimization using [graphene-django-optimizer](https://github.com/tfoxy/graphene-django-optimizer)
-    * Permission handling for queries using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
-    * Object permission handling for queries using [django guardian](https://github.com/django-guardian/django-guardian)
-    * Relay id conversion so querying can use the global id instead of the model's id
-* Provides a set of complete and simple CRUD mutations with:
-    * Unauthenticated user handling
-    * Permission handling using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
-    * Object permission handling using [django guardian](https://github.com/django-guardian/django-guardian)
-    * Automatic input generation based on the model (no need to write your own input type or use `django forms` and `drf serializers`)
-    * Automatic model validation based on the model's validators
-* Very simple to create some quick CRUD endpoints for your models
-* Easy to extend and override functionalities
-* File upload handling
+- Provides some base types for Django Models to improve querying them with:
+  - Unauthenticated user handling
+  - Automatic optimization using [graphene-django-optimizer](https://github.com/tfoxy/graphene-django-optimizer)
+  - Permission handling for queries using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
+  - Object permission handling for queries using [django guardian](https://github.com/django-guardian/django-guardian)
+  - Relay id conversion so querying can use the global id instead of the model's id
+- Provides a set of complete and simple CRUD mutations with:
+  - Unauthenticated user handling
+  - Permission handling using the default [django permission system](https://docs.djangoproject.com/en/2.2/topics/auth/default/#topic-authorization)
+  - Object permission handling using [django guardian](https://github.com/django-guardian/django-guardian)
+  - Automatic input generation based on the model (no need to write your own input type or use `django forms` and `drf serializers`)
+  - Automatic model validation based on the model's validators
+- Very simple to create some quick CRUD endpoints for your models
+- Easy to extend and override functionalities
+- File upload handling
 
 ## What is included
 
@@ -48,19 +48,19 @@ api documentation.
 
 ### Models
 
-* `graphene_django_plus.models.GuardedModel`: A django model that can be used
+- `graphene_django_plus.models.GuardedModel`: A django model that can be used
   either directly or as a mixin. It will provide a `.has_perm` method and a
   `.objects.for_user` that will be used by `ModelType` described bellow to
-  check for object permissions.  some utilities to check.
+  check for object permissions. some utilities to check.
 
 ### Types and Queries
 
-* `graphene_django_plus.types.ModelType`: This enchances
+- `graphene_django_plus.types.ModelType`: This enchances
   `graphene_django_plus.DjangoModelType` by doing some automatic `prefetch`
   optimization on setup and also checking for objects permissions on queries
   when it inherits from `GuardedModel`.
 
-* `graphene_django_plus.fields.CountableConnection`: This enchances
+- `graphene_django_plus.fields.CountableConnection`: This enchances
   `graphene.relay.Connection` to provide a `total_count` attribute.
 
 Here is an example describing how to use those:
@@ -147,23 +147,23 @@ query {
 
 ### Mutations
 
-* `graphene_django_plus.mutations.BaseMutation`: Base mutation using `relay`
+- `graphene_django_plus.mutations.BaseMutation`: Base mutation using `relay`
   and some basic permission checking. Just override its `.perform_mutation` to
   perform the mutation.
 
-* `graphene_django_plus.mutations.ModelMutation`: Model mutation capable of
+- `graphene_django_plus.mutations.ModelMutation`: Model mutation capable of
   both creating and updating a model based on the existence of an `id`
   attribute in the input. All the model's fields will be automatically read
   from Django, inserted in the input type and validated.
 
-* `graphene_django_plus.mutations.ModelCreateMutation`: A `ModelMutation`
+- `graphene_django_plus.mutations.ModelCreateMutation`: A `ModelMutation`
   enforcing a "create only" rule by excluding the `id` field from the input.
 
-* `graphene_django_plus.mutations.ModelUpdateMutation`: A `ModelMutation`
+- `graphene_django_plus.mutations.ModelUpdateMutation`: A `ModelMutation`
   enforcing a "update only" rule by making the `id` field required in the
   input.
 
-* `graphene_django_plus.mutations.ModelDeleteMutation`: A mutation that will
+- `graphene_django_plus.mutations.ModelDeleteMutation`: A mutation that will
   receive only the model's id and will delete it (if given permission, of
   course).
 
@@ -252,7 +252,7 @@ This can be used to create/update/delete like:
 ```graphql
 # Create mutation
 mutation {
-  myModelCreate(input: {name: "foobar"}) {
+  myModelCreate(input: { name: "foobar" }) {
     myModel {
       name
     }
@@ -265,7 +265,7 @@ mutation {
 
 # Update mutation
 mutation {
-  myModelUpdate(input: {id: "<relay global ID>" name: "foobar"}) {
+  myModelUpdate(input: { id: "<relay global ID>", name: "foobar" }) {
     myModel {
       name
     }
@@ -278,7 +278,7 @@ mutation {
 
 # Delete mutation
 mutation {
-  myModelDelete(input: {id: "<relay global ID>"}) {
+  myModelDelete(input: { id: "<relay global ID>" }) {
     myModel {
       name
     }

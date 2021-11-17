@@ -4,7 +4,7 @@
 import collections
 import collections.abc
 import itertools
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, cast
+from typing import Any, ClassVar, Dict, Generic, List, Optional, Type, TypeVar, cast
 
 from django.core.exceptions import NON_FIELD_ERRORS, ImproperlyConfigured
 from django.core.exceptions import PermissionDenied as DJPermissionDenied
@@ -19,7 +19,7 @@ from graphene.types.objecttype import ObjectType
 from graphene.types.utils import yank_fields_from_attrs
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import convert_django_field_with_choices
-from graphene_django.registry import get_global_registry
+from graphene_django.registry import Registry, get_global_registry
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
@@ -188,12 +188,18 @@ class BaseMutationOptions(MutationOptions):
     #: The input schema for the schema query
     input_schema: Optional[dict] = None
 
+    #: Optional registry to register/retrieve types and fields instead of the global one
+    registry: Optional[Registry] = None
+
 
 class BaseMutation(ClientIDMutation):
     """Base mutation enchanced with permission checking and relay id handling."""
 
     class Meta:
         abstract = True
+
+    #: Meta options for the mutation
+    _meta: ClassVar[BaseMutationOptions]
 
     #: A list of errors that happened during the mutation
     errors = graphene.List(
@@ -326,11 +332,11 @@ class BaseMutation(ClientIDMutation):
         raise NotImplementedError
 
 
-class ModelMutationOptions(BaseMutationOptions):
+class ModelMutationOptions(BaseMutationOptions, Generic[_T]):
     """Model type options for :class:`BaseModelMutation` and subclasses."""
 
     #: The Django model.
-    model: Optional[models.Model] = None
+    model: Type[_T]
 
     #: A list of guardian object permissions to check if the user has
     #: permission to perform a mutation to the model object.
@@ -365,6 +371,9 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
 
     class Meta:
         abstract = True
+
+    #: Meta options for the mutation
+    _meta: ClassVar[ModelMutationOptions[_T]]
 
     @classmethod
     def __init_subclass_with_meta__(
@@ -487,10 +496,11 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         instance.save()
 
         # save m2m and related object's data
+        model = type(instance)
         for f in itertools.chain(
-            instance._meta.many_to_many,
-            instance._meta.related_objects,
-            instance._meta.private_fields,
+            model._meta.many_to_many,
+            model._meta.related_objects,
+            model._meta.private_fields,
         ):
             if isinstance(f, (ManyToOneRel, ManyToManyRel)):
                 # Handle reverse side relationships.
@@ -567,9 +577,7 @@ class ModelMutation(BaseModelMutation[_T]):
     @classmethod
     def create_instance(cls, info: ResolverInfo, instance: _T, cleaned_data: Dict[str, Any]) -> _T:
         """Create a model instance given the already cleaned input data."""
-        opts = instance._meta
-
-        for f in opts.fields:
+        for f in type(instance)._meta.fields:
             if not f.editable or isinstance(f, models.AutoField) or f.name not in cleaned_data:
                 continue
 
@@ -654,6 +662,7 @@ class ModelMutation(BaseModelMutation[_T]):
             # some related objects
             raise PermissionDenied()
 
+        assert cls._meta.return_field_name
         return cls(**{cls._meta.return_field_name: instance})
 
 
@@ -723,4 +732,6 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
+
+        assert cls._meta.return_field_name
         return cls(**{cls._meta.return_field_name: instance})

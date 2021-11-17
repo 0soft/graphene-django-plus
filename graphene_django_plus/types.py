@@ -1,6 +1,16 @@
 import datetime
 import decimal
-from typing import TYPE_CHECKING, Any, Generic, List, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Generic,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -263,8 +273,11 @@ class UploadType(graphene.types.Scalar):
         return value
 
 
-class ModelTypeOptions(DjangoObjectTypeOptions):
+class ModelTypeOptions(DjangoObjectTypeOptions, Generic[_T]):
     """Model type options for :class:`ModelType`."""
+
+    #: The Django model.
+    model: Type[_T]
 
     #: If we shuld allow unauthenticated users to query for this model.
     public: bool = False
@@ -295,6 +308,9 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
 
     class Meta:
         abstract = True
+
+    #: Meta options for the mutation
+    _meta: ClassVar[ModelTypeOptions[_T]]
 
     @classmethod
     def __class_getitem__(cls, *args, **kwargs):

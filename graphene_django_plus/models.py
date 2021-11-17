@@ -3,7 +3,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-from typing import List, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union
 
 try:
     from guardian.conf import settings as guardian_settings
@@ -45,6 +45,8 @@ def _has_anonymous_user():
 
 class GuardedModelManager(models.Manager[_T]):
     """Model manager that integrates with guardian to check for permissions."""
+
+    model: Type[_T]
 
     def for_user(
         self,
@@ -153,9 +155,16 @@ class GuardedModel(models.Model):
     class Meta:
         abstract = True
 
-    # NOTE: This should be adjusted in each model using this class
-    # for better typing support
-    objects = GuardedModelManager["GuardedModel"]()
+    # Make sure objects is properly typed for subclasses
+    if TYPE_CHECKING:
+
+        @classmethod
+        @property
+        def objects(cls: Type[_T]) -> GuardedModelManager[_T]:
+            ...
+
+    else:
+        objects = GuardedModelManager["GuardedModel"]()
 
     def has_perm(
         self,
@@ -202,7 +211,17 @@ class GuardedRelatedModel(GuardedModel):
     class Meta:
         abstract = True
 
-    objects = GuardedRelatedManager["GuardedRelatedModel"]()
+    # Make sure objects is properly typed for subclasses
+    if TYPE_CHECKING:
+
+        @classmethod
+        @property
+        def objects(cls: Type[_TR]) -> GuardedRelatedManager[_TR]:
+            ...
+
+    else:
+        objects = GuardedRelatedManager["GuardedRelatedModel"]()
+
     related_model: Union[Type[GuardedModel], str]
     related_attr: str
 

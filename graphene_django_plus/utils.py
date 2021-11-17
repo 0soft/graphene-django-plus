@@ -4,7 +4,7 @@ except ImportError:
     from collections import Mapping
 
 import itertools
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from django.db import models
 from django.db.models.fields.reverse_related import ManyToOneRel
@@ -157,7 +157,7 @@ def get_inputtype(name, object_type):
     return inputtype
 
 
-def get_model_fields(model: models.Model):
+def get_model_fields(model: Type[models.Model]):
     fields = [
         (field.name, field)
         for field in sorted(model._meta.fields + model._meta.many_to_many)  # type:ignore
