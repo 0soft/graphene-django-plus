@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graphene-django-plus"
-version = "4.1"
+version = "4.2"
 description = "Tools to easily create permissioned CRUD endpoints in graphene."
 authors = ["Thiago Bellini Ribeiro <thiago@bellini.dev>"]
 license = "MIT"
