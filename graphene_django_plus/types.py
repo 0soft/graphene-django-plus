@@ -1,16 +1,6 @@
 import datetime
 import decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Generic,
-    List,
-    Optional,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Generic, List, Optional, Type, TypeVar, Union
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -309,8 +299,12 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
     class Meta:
         abstract = True
 
-    #: Meta options for the mutation
-    _meta: ClassVar[ModelTypeOptions[_T]]
+    if TYPE_CHECKING:
+
+        @classmethod
+        @property
+        def _meta(cls) -> ModelTypeOptions[_T]:
+            ...
 
     @classmethod
     def __class_getitem__(cls, *args, **kwargs):

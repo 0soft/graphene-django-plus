@@ -4,7 +4,17 @@
 import collections
 import collections.abc
 import itertools
-from typing import Any, ClassVar, Dict, Generic, List, Optional, Type, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    cast,
+)
 
 from django.core.exceptions import NON_FIELD_ERRORS, ImproperlyConfigured
 from django.core.exceptions import PermissionDenied as DJPermissionDenied
@@ -17,7 +27,7 @@ from graphene.relay.mutation import ClientIDMutation
 from graphene.types.mutation import MutationOptions
 from graphene.types.objecttype import ObjectType
 from graphene.types.utils import yank_fields_from_attrs
-from graphene.utils.str_converters import to_camel_case
+from graphene.utils.str_converters import to_camel_case, to_snake_case
 from graphene_django.converter import convert_django_field_with_choices
 from graphene_django.registry import Registry, get_global_registry
 from graphql.error import GraphQLError
@@ -43,7 +53,7 @@ _MM = TypeVar("_MM", bound="ModelMutation")
 
 def _get_model_name(model):
     model_name = model.__name__
-    return model_name[:1].lower() + model_name[1:]
+    return to_snake_case(model_name[:1].lower() + model_name[1:])
 
 
 def _get_output_fields(model, return_field_name, registry):
@@ -198,8 +208,12 @@ class BaseMutation(ClientIDMutation):
     class Meta:
         abstract = True
 
-    #: Meta options for the mutation
-    _meta: ClassVar[BaseMutationOptions]
+    if TYPE_CHECKING:
+
+        @classmethod
+        @property
+        def _meta(cls) -> BaseMutationOptions:
+            ...
 
     #: A list of errors that happened during the mutation
     errors = graphene.List(
@@ -372,8 +386,12 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     class Meta:
         abstract = True
 
-    #: Meta options for the mutation
-    _meta: ClassVar[ModelMutationOptions[_T]]
+    if TYPE_CHECKING:
+
+        @classmethod
+        @property
+        def _meta(cls) -> ModelMutationOptions[_T]:
+            ...
 
     @classmethod
     def __init_subclass_with_meta__(
