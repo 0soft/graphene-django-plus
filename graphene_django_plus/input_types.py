@@ -5,9 +5,10 @@ used in mutations.
 import functools
 from typing import Union
 
-import graphene
 from django.db import models
-from django.db.models import Field, ForeignObjectRel
+from django.db.models import Field
+from django.db.models.fields.reverse_related import ForeignObjectRel
+import graphene
 from graphene import Scalar
 from graphene.types.structures import Structure
 from graphene_django.converter import convert_django_field_with_choices
@@ -17,7 +18,9 @@ from .types import UploadType
 
 
 @functools.singledispatch
-def get_input_field(field: Union[Field, ForeignObjectRel], registry: Registry) -> Union[Scalar, Structure]:
+def get_input_field(
+    field: Union[Field, ForeignObjectRel], registry: Registry
+) -> Union[Scalar, Structure]:
     """
     Convert a model field into a GraphQL input type used in mutations.
     :param field: A model field.

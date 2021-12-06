@@ -1,8 +1,9 @@
-import graphene
 from django.db import models
+import graphene
 from graphene_django.registry import get_global_registry
 
 from graphene_django_plus.input_types import get_input_field
+
 from .base import BaseTestCase
 from .models import Project
 
@@ -40,9 +41,9 @@ class TestInputTypes(BaseTestCase):
         field = models.ManyToOneRel(
             models.ForeignKey(Project, on_delete=models.CASCADE), Project, "projects"
         )
-        setattr(
-            field, "related_model", Project
-        )  # set this manually because django does not initialize the model
+        field.related_model = (
+            Project  # set this manually because django does not initialize the model
+        )
         input_field = get_input_field(field, _registry)
         self.assertTrue(isinstance(input_field, graphene.List))
         self.assertEqual(input_field.of_type._meta.name, "ID")
@@ -51,9 +52,9 @@ class TestInputTypes(BaseTestCase):
         field = models.ManyToManyRel(
             models.ForeignKey(Project, on_delete=models.CASCADE), Project, "projects"
         )
-        setattr(
-            field, "related_model", Project
-        )  # set this manually because django does not initialize the model
+        field.related_model = (
+            Project  # set this manually because django does not initialize the model
+        )
         input_field = get_input_field(field, _registry)
         self.assertTrue(isinstance(input_field, graphene.List))
         self.assertEqual(input_field.of_type._meta.name, "ID")
