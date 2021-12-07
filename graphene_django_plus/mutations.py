@@ -28,11 +28,11 @@ from graphene.types.mutation import MutationOptions
 from graphene.types.objecttype import ObjectType
 from graphene.types.utils import yank_fields_from_attrs
 from graphene.utils.str_converters import to_camel_case, to_snake_case
-from graphene_django.converter import convert_django_field_with_choices
 from graphene_django.registry import Registry, get_global_registry
 from graphql.error import GraphQLError
 
 from .exceptions import PermissionDenied
+from .input_types import get_input_field
 from .models import GuardedModel
 from .perms import check_authenticated, check_perms
 from .settings import graphene_django_plus_settings
@@ -92,6 +92,8 @@ def _get_validation_errors(validation_error):
 
 
 def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
+    reverse_rel_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
+
     ret = collections.OrderedDict()
     for name, field in get_model_fields(model):
         if (
@@ -111,37 +113,12 @@ def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
             f = graphene.ID(
                 description=description,
             )
-        elif isinstance(field, models.FileField):
-            f = UploadType(
-                description=field.help_text,
-            )
-        elif isinstance(field, models.BooleanField):
-            f = graphene.Boolean(
-                description=field.help_text,
-            )
-        elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
-            f = graphene.ID(
-                description=field.help_text,
-            )
-        elif isinstance(field, models.ManyToManyField):
-            f = graphene.List(
-                graphene.ID,
-                description=field.help_text,
-            )
-        elif isinstance(field, (ManyToOneRel, ManyToManyRel)):
-            reverse_rel_include = graphene_django_plus_settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS
+        else:
             # Checking whether it was globally configured to not include reverse relations
             if isinstance(field, ManyToOneRel) and not reverse_rel_include and not only_fields:
                 continue
 
-            f = graphene.List(
-                graphene.ID,
-                description="Set list of {}".format(
-                    field.related_model._meta.verbose_name_plural,
-                ),
-            )
-        else:
-            f = convert_django_field_with_choices(field, registry)
+            f = get_input_field(field, registry)
 
         if required_fields is not None:
             required = name in required_fields
