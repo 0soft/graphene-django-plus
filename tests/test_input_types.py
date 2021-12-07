@@ -21,6 +21,11 @@ class TestInputTypes(BaseTestCase):
         input_field = get_input_field(field, _registry)
         self.assertEqual(input_field._meta.name, "Boolean")
 
+    def test_file(self):
+        field = models.FileField()
+        input_field = get_input_field(field, _registry)
+        self.assertEqual(input_field._meta.name, "UploadType")
+
     def test_foreign_key(self):
         field = models.ForeignKey(Project, on_delete=models.CASCADE)
         input_field = get_input_field(field, _registry)
