@@ -50,8 +50,8 @@ api documentation.
 
 - `graphene_django_plus.models.GuardedModel`: A django model that can be used
   either directly or as a mixin. It will provide a `.has_perm` method and a
-  `.objects.for_user` that will be used by `ModelType` described bellow to
-  check for object permissions. some utilities to check.
+  `.objects.for_user` that will be used by `ModelType` described below to
+  check for object permissions.
 
 ### Types and Queries
 
@@ -104,13 +104,13 @@ class MyModelType(ModelType):
         ]
 
         # If unauthenticated users should be allowed to retrieve any object
-        # of this type. This is not dependant on `GuardedModel` and neither
+        # of this type. This is not dependent on `GuardedModel` and neither
         # `guardian` and is defined as `False` by default
         public = False
 
         # A list of Django model permissions to check. Different from
         # object_permissions, this uses the basic Django's permission system
-        # and thus is not dependant on `GuardedModel` and neither `guardian`.
+        # and thus is not dependent on `GuardedModel` and neither `guardian`.
         # This is an empty list by default.
         permissions = []
 
@@ -205,20 +205,20 @@ class MyModelUpdateMutation(ModelUpdateMutation):
         # Make sure only users with the given permissions can modify the
         # object.
         # If the model doesn't inherid from `GuardedModel`, `guardian` is not
-        # installed ot this list is empty, any object will be allowed.
+        # installed on this list is empty, any object will be allowed.
         # This is empty by default.
         object_permissions = [
             'can_write',
         ]
 
         # If unauthenticated users should be allowed to retrieve any object
-        # of this type. This is not dependant on `GuardedModel` and neither
+        # of this type. This is not dependent on `GuardedModel` and neither
         # `guardian` and is defined as `False` by default
         public = False
 
         # A list of Django model permissions to check. Different from
         # object_permissions, this uses the basic Django's permission system
-        # and thus is not dependant on `GuardedModel` and neither `guardian`.
+        # and thus is not dependent on `GuardedModel` and neither `guardian`.
         # This is an empty list by default.
         permissions = []
 

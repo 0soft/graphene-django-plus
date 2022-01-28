@@ -248,6 +248,7 @@ class UploadType(graphene.types.Scalar):
     binary file.
 
     See: https://github.com/jaydenseric/graphql-multipart-request-spec
+
     """
 
     @staticmethod
@@ -269,7 +270,7 @@ class ModelTypeOptions(DjangoObjectTypeOptions, Generic[_T]):
     #: The Django model.
     model: Type[_T]
 
-    #: If we shuld allow unauthenticated users to query for this model.
+    #: If we should allow unauthenticated users to query for this model.
     public: bool = False
 
     #: A list of django permissions to check if the user has permission to
@@ -391,6 +392,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
 
         Note that the query will only be automaticallu optimized if,
         `graphene_django_optimizer` is installed.
+
         """
         if isinstance(qs, models.Manager):
             qs = qs.get_queryset()
@@ -448,6 +450,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
 
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
+
         """
         if not cls._meta.public and not check_authenticated(user):
             return False
@@ -471,6 +474,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
         For this to work, the model needs to implement a `has_perm` method.
         The easiest way when using `guardian` is to inherit it
         from :class:`graphene_django_plus.models.GuardedModel`.
+
         """
         if not cls._meta.object_permissions:
             return True

@@ -122,17 +122,17 @@ def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
 
         if required_fields is not None:
             required = name in required_fields
-            f.kwargs["required"] = required  # type:ignore
+            f.kwargs["required"] = required
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
                 required = not field.null
             else:
                 required = not field.blank and field.default is NOT_PROVIDED
 
-            f.kwargs["required"] = required  # type:ignore
+            f.kwargs["required"] = required
 
         s = schema_for_field(field, name, registry)
-        required = f.kwargs["required"]  # type:ignore
+        required = f.kwargs["required"]
         s["validation"]["required"] = required
 
         ret[name] = {
@@ -180,7 +180,7 @@ class BaseMutationOptions(MutationOptions):
 
 
 class BaseMutation(ClientIDMutation):
-    """Base mutation enchanced with permission checking and relay id handling."""
+    """Base mutation enhanced with permission checking and relay id handling."""
 
     class Meta:
         abstract = True
@@ -250,7 +250,7 @@ class BaseMutation(ClientIDMutation):
             raise ValidationError({field: str(e)})
         else:
             if node is None:  # pragma: no cover
-                raise ValidationError({field: "Couldn't resolve to a node: {}".format(node_id)})
+                raise ValidationError({field: f"Couldn't resolve to a node: {node_id}"})
 
         return node
 
@@ -276,6 +276,7 @@ class BaseMutation(ClientIDMutation):
 
         Subclasses can override this to avoid the permission checking or
         extending it. Remember to call `super()` in the later case.
+
         """
         user = info.context.user
 
@@ -296,6 +297,7 @@ class BaseMutation(ClientIDMutation):
         of errors automatically.
 
         The mutation itself should be defined in :meth:`.perform_mutation`.
+
         """
         try:
             if not cls.check_permissions(info):
@@ -318,7 +320,9 @@ class BaseMutation(ClientIDMutation):
     def perform_mutation(cls: Type[_M], root, info: ResolverInfo, **data) -> _M:
         """Perform the mutation.
 
-        This should be implemented in subclasses to perform the mutation.
+        This should be implemented in subclasses to perform the
+        mutation.
+
         """
         raise NotImplementedError
 
@@ -358,6 +362,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     depending on if the object's id is present in the input or not.
 
     See :class:`ModelMutationOptions` for a list of meta configurations.
+
     """
 
     class Meta:
@@ -441,6 +446,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
         For this to work, the model needs to implement a `has_perm` method.
         The easiest way when using `guardian` is to inherit it
         from :class:`graphene_django_plus.models.GuardedModel`.
+
         """
         if not cls._meta.object_permissions:
             return True
@@ -466,19 +472,19 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     def before_save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "before save" operations.
 
-        Override this to perform any operation on the instance
-        before its `.save()` method is called.
+        Override this to perform any operation on the instance before
+        its `.save()` method is called.
+
         """
-        pass
 
     @classmethod
     def after_save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
         """Perform "after save" operations.
 
-        Override this to perform any operation on the instance
-        after its `.save()` method is called.
+        Override this to perform any operation on the instance after its
+        `.save()` method is called.
+
         """
-        pass
 
     @classmethod
     def save(cls, info: ResolverInfo, instance: _T, cleaned_input: Dict[str, Any]):
@@ -486,6 +492,7 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
 
         To do something with the instance "before" or "after" saving it,
         override either :meth:`.before_save` and/or :meth:`.after_save`.
+
         """
         cls.before_save(info, instance, cleaned_input=cleaned_input)
         instance.save()
@@ -514,26 +521,28 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
     def before_delete(cls, info: ResolverInfo, instance: _T):
         """Perform "before delete" operations.
 
-        Override this to perform any operation on the instance
-        before its `.delete()` method is called.
+        Override this to perform any operation on the instance before
+        its `.delete()` method is called.
+
         """
-        pass
 
     @classmethod
     def after_delete(cls, info: ResolverInfo, instance: _T):
         """Perform "after delete" operations.
 
-        Override this to perform any operation on the instance
-        after its `.delete()` method is called.
+        Override this to perform any operation on the instance after its
+        `.delete()` method is called.
+
         """
-        pass
 
     @classmethod
     def delete(cls, info: ResolverInfo, instance: _T):
         """Delete the instance from the database.
 
-        To do something with the instance "before" or "after" deleting it,
-        override either :meth:`.before_delete` and/or :meth:`.after_delete`.
+        To do something with the instance "before" or "after" deleting
+        it, override either :meth:`.before_delete` and/or
+        :meth:`.after_delete`.
+
         """
         cls.before_delete(info, instance)
         instance.delete()
@@ -543,8 +552,9 @@ class BaseModelMutation(BaseMutation, Generic[_T]):
 class ModelOperationMutation(BaseModelMutation[_T]):
     """Base mutation for operations on models.
 
-    Just like a regular :class:`BaseModelMutation`, but this will receive only
-    the object's id so an operation can happen to it.
+    Just like a regular :class:`BaseModelMutation`, but this will
+    receive only the object's id so an operation can happen to it.
+
     """
 
     class Meta:
@@ -564,6 +574,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
     This will allow mutations for both create and update operations,
     depending on if the object's id is present in the input or not.
+
     """
 
     class Meta:
@@ -637,6 +648,7 @@ class ModelMutation(BaseModelMutation[_T]):
 
         Create or update the instance, based on the existence of the
         `id` attribute in the input data and save it.
+
         """
         obj_id = data.get("id")
         if obj_id:
@@ -664,8 +676,9 @@ class ModelMutation(BaseModelMutation[_T]):
 class ModelCreateMutation(ModelMutation[_T]):
     """Create mutation for models.
 
-    A shortcut for defining a :class:`ModelMutation` that already excludes
-    the `id` from being required.
+    A shortcut for defining a :class:`ModelMutation` that already
+    excludes the `id` from being required.
+
     """
 
     class Meta:
@@ -685,8 +698,9 @@ class ModelCreateMutation(ModelMutation[_T]):
 class ModelUpdateMutation(ModelMutation[_T]):
     """Update mutation for models.
 
-    A shortcut for defining a :class:`ModelMutation` that already enforces
-    the `id` to be required.
+    A shortcut for defining a :class:`ModelMutation` that already
+    enforces the `id` to be required.
+
     """
 
     class Meta:
@@ -718,6 +732,7 @@ class ModelDeleteMutation(ModelOperationMutation[_T]):
 
         Delete the instance from the database given its `id` attribute
         in the input data.
+
         """
         instance = cls.get_instance(info, data["id"])
 

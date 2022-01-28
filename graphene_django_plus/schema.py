@@ -45,9 +45,7 @@ class FieldKind(graphene.Enum):
 
 @functools.singledispatch
 def get_field_schema(field, registry=None) -> dict:
-    raise Exception(
-        "Don't know how to convert the Django field {} ({})".format(field, field.__class__)
-    )
+    raise Exception(f"Don't know how to convert the Django field {field} ({field.__class__})")
 
 
 @get_field_schema.register(models.CharField)

@@ -272,10 +272,10 @@ class TestTypes(BaseTestCase):
 
 
 class TestMutationRegistry(BaseTestCase):
-    """Tests with ObjectTypes and Mutations using a different registry than the global registry"""
+    """Tests with ObjectTypes and Mutations using a different registry than the global registry."""
 
     def test_mutation_meta_registry(self):
-        """Test having registry information stored in mutation meta"""
+        """Test having registry information stored in mutation meta."""
         self.assertEqual(ProjectUpdateMutation._meta.registry, get_global_registry())
         self.assertNotEqual(ProjectUpdateMutation._meta.registry, project_name_only_registry)
 
@@ -283,7 +283,7 @@ class TestMutationRegistry(BaseTestCase):
         self.assertEqual(ProjectNameOnlyUpdateMutation._meta.registry, project_name_only_registry)
 
     def test_mutation_with_non_global_registry(self):
-        """Test that update mutation using non global registry is working"""
+        """Test that update mutation using non global registry is working."""
         # project
         p_id = to_global_id("ProjectNameOnlyType", self.project.id)
         self.assertNotEqual(self.project.name, "XXX")
@@ -307,7 +307,7 @@ class TestMutationRegistry(BaseTestCase):
         self.assertEqual(self.project.name, "XXX")
 
     def test_mutation_name_only(self):
-        """Test that update mutation using non global registry is using correct model type"""
+        """Test that update mutation using non global registry is using correct model type."""
 
         # project
         p_id = to_global_id("ProjectNameOnlyType", self.project.id)

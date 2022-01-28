@@ -3,7 +3,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union, cast
 
 try:
     from guardian.conf import settings as guardian_settings
@@ -61,6 +61,7 @@ class GuardedModelManager(models.Manager[_T]):
         :param perms: a string or list of perms to check for
         :param any_perm: if any perm or all perms should be considered
         :param with_superuser: if a superuser should skip the checks
+
         """
         # No guardian means we are not checking perms
         if not has_guardian:
@@ -123,6 +124,7 @@ class GuardedRelatedManager(GuardedModelManager[_TR]):
                 app_label, model_name = m.split(".")
                 m = apps.get_model(app_label=app_label, model_name=model_name)
 
+            m = cast(Type[GuardedModel], m)
             other_qs = self.all().filter(
                 **{
                     f"{self.model.related_attr}__in": m.objects.for_user(
@@ -180,6 +182,7 @@ class GuardedModel(models.Model):
         :param any_perm: if any perm or all perms should be considered
         :param checker: a `guardian.core.ObjectPermissionChecker` that
             can be used to optimize performance in checking for permissions
+
         """
         # No guardian means we are not checking perms
         if not has_guardian:
@@ -195,11 +198,11 @@ class GuardedModel(models.Model):
         f = any if any_perm else all
 
         # First try to check if the user has global permissions for this
-        # Otherwise we will check for the object itself bellow
+        # Otherwise we will check for the object itself below
         if f(user.has_perm(p) for p in perms):
             return True
 
-        # Small performance improvement by mimicing guardian's api
+        # Small performance improvement by mimicking guardian's api
         perms = [p.split(".", 1)[1] if "." in p else p for p in perms]
         c_perms = checker.get_perms(self)
         return f(p in c_perms for p in perms)

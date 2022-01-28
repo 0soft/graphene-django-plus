@@ -1,4 +1,6 @@
+---
 name: Run Tests
+
 on:
   push:
     branches: [master]
@@ -24,7 +26,7 @@ jobs:
     strategy:
       matrix:
         django-version: ["2.2.0", "3.0.0", "3.1.0", "3.2.0"]
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
       - name: Checkout

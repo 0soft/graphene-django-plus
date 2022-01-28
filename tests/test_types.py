@@ -470,7 +470,7 @@ class TestTypes(BaseTestCase):
             )
 
     def test_result_non_global_registry(self):
-        """Test that query using non global registry is working and using correct model type"""
+        """Test that query using non global registry is working and using correct model type."""
         # project
         p_id = to_global_id("ProjectNameOnlyType", self.project.id)
         r = self.query(

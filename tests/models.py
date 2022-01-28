@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models
 
@@ -49,6 +49,7 @@ class Milestone(models.Model):
         blank=True,
         default=None,
     )
+    project_id: int
     project = models.ForeignKey[Project](
         Project,
         related_name="milestones",
@@ -90,7 +91,8 @@ class Issue(GuardedModel):
     priority = models.IntegerField(
         default=0,
     )
-    milestone = models.ForeignKey[Milestone](
+    milestone_id: int
+    milestone = models.ForeignKey[Optional[Milestone]](
         Milestone,
         related_name="issues",
         related_query_name="issue",
@@ -114,6 +116,7 @@ class IssueComment(GuardedRelatedModel):
         verbose_name="ID",
         primary_key=True,
     )
+    issue_id: int
     issue = models.ForeignKey(
         Issue,
         null=True,
@@ -136,6 +139,7 @@ class MilestoneComment(models.Model):
     text = models.CharField(
         max_length=255,
     )
+    milestone_id: int
     milestone = models.ForeignKey(
         Milestone,
         null=True,

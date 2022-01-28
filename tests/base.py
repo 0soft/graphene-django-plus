@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 from django.contrib.auth.models import User
 from graphene_django.utils.testing import GraphQLTestCase
@@ -10,6 +11,17 @@ from .schema import schema
 
 class BaseTestCase(GraphQLTestCase):
     GRAPHQL_SCHEMA = schema
+
+    user: User
+    project: Project
+    milestone_1: Milestone
+    milestone_2: Milestone
+    issues: List[Issue]
+    allowed_issues: List[Issue]
+    unallowed_issues: List[Issue]
+    issues_comments: List[IssueComment]
+    unallowed_issues_comments: List[IssueComment]
+    allowed_issues_comments: List[IssueComment]
 
     def setUp(self):
         self.user = User(username="foobar")
@@ -42,7 +54,7 @@ class BaseTestCase(GraphQLTestCase):
             ]
         ):
             i = Issue.objects.create(
-                name="Issue {}".format(i + 1),
+                name=f"Issue {i + 1}",
                 priority=priority,
                 milestone=milestone,
             )

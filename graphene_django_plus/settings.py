@@ -25,10 +25,7 @@ IMPORT_STRINGS = []
 
 
 def perform_import(val, setting_name):
-    """
-    If the given setting is a string import notation,
-    then perform the necessary import or imports.
-    """
+    """Perform the necessary import in string import notation."""
     if val is None:
         return None
     elif isinstance(val, str):
@@ -39,9 +36,7 @@ def perform_import(val, setting_name):
 
 
 def import_from_string(val, setting_name):
-    """
-    Attempt to import a class from a string representation.
-    """
+    """Attempt to import a class from a string representation."""
     try:
         # Nod to tastypie's use of importlib.
         parts = val.split(".")
@@ -59,16 +54,18 @@ def import_from_string(val, setting_name):
 
 
 class GrapheneDjangoPlusSettings:
-    """
-    A settings object, that allows API settings to be accessed as properties.
+    """A settings object, that allows API settings to be accessed as properties.
+
     For example:
         from graphene_django_plus.settings import settings
         print(settings.MUTATIONS_INCLUDE_REVERSE_RELATIONS)
     Any setting with string import paths will be automatically resolved
     and return the class, rather than the string literal.
+
     """
 
     def __init__(self, user_settings=None, defaults=None, import_strings=None):
+        super().__init__()
         if user_settings:
             self._user_settings = user_settings
         self.defaults = defaults or DEFAULTS

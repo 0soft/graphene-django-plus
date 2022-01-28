@@ -1,7 +1,3 @@
-"""
-Module that defines the mapping between model fields and GraphQL input types
-used in mutations.
-"""
 import functools
 from typing import Union
 
@@ -21,14 +17,15 @@ from .types import UploadType
 def get_input_field(
     field: Union[Field, ForeignObjectRel], registry: Registry
 ) -> Union[Scalar, Structure]:
-    """
-    Convert a model field into a GraphQL input type used in mutations.
+    """Convert a model field into a GraphQL input type used in mutations.
+
     :param field: A model field.
     :param registry: Registry which holds a mapping between django models/fields
       and Graphene types.
     :return: A scalar that can be used as an input field in mutations.
+
     """
-    return convert_django_field_with_choices(field, registry)
+    return convert_django_field_with_choices(field, registry)  # type:ignore
 
 
 @get_input_field.register(models.FileField)
@@ -66,5 +63,5 @@ def get_many_to_many_field(field, registry):
 def get_relation_field(field, registry):
     return graphene.List(
         graphene.ID,
-        description="Set list of {}".format(field.related_model._meta.verbose_name_plural),
+        description=f"Set list of {field.related_model._meta.verbose_name_plural}",
     )

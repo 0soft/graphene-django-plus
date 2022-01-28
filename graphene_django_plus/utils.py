@@ -40,7 +40,7 @@ def _resolve_nodes(ids, graphene_type=None):
             continue
 
         if used_type and str(used_type) != node_type:  # pragma: nocover
-            raise AssertionError("Must receive a {} id.".format(str(used_type)))
+            raise AssertionError(f"Must receive a {str(used_type)} id.")
 
         used_type = node_type
         pks.append(_id)
@@ -61,7 +61,7 @@ def _resolve_graphene_type(type_name, registry=None):
         if _type._meta.name == type_name:
             return _type
     else:  # pragma: no cover
-        raise AssertionError("Could not resolve the type {}".format(type_name))
+        raise AssertionError(f"Could not resolve the type {type_name}")
 
 
 def _get_input_attrs(object_type):
@@ -111,6 +111,7 @@ def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None, 
     the Graphene's registry.
 
     Raises an error if not all IDs are of the same type.
+
     """
     if not ids:  # pragma: nocover
         raise ValueError("ids list cannot be empty")
@@ -143,7 +144,7 @@ def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None, 
 
 
 def get_inputtype(name, object_type):
-    """Get an input type based on the object type"""
+    """Get an input type based on the object type."""
     if object_type in _input_registry:
         return _input_registry[object_type]
 

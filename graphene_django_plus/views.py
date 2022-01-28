@@ -55,6 +55,7 @@ class GraphQLView(_GraphQLView):
 
     Based on:
         https://github.com/mirumee/saleor/blob/master/saleor/graphql/views.py
+
     """
 
     @staticmethod
