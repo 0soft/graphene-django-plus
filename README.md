@@ -7,6 +7,19 @@
 ![python version](https://img.shields.io/pypi/pyversions/graphene-django-plus.svg)
 ![django version](https://img.shields.io/pypi/djversions/graphene-django-plus.svg)
 
+> ## DEPRECATION WARNING
+>
+> Graphene itself is abandoned and most users are migrating to other better alternatives, like
+> [strawberry](https://github.com/strawberry-graphql/strawberry).
+>
+> For that reason this lib is being deprecated and new features will no longer be developed for it.
+> Maintenance is still going to happen and PRs are still welcomed though.
+>
+> For anyone looking for alternatives, I created
+> [strawberry-django-plus](https://github.com/blb-ventures/strawberry-django-plus) to use not
+> only as a migration path to the projects I maintain, but also to add even more awesome features.
+> Be sure to check it out!
+
 Tools to easily create permissioned CRUD endpoints in [graphene-django](https://github.com/graphql-python/graphene-django).
 
 ## Install
