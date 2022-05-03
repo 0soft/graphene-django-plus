@@ -3,7 +3,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-from typing import TYPE_CHECKING, List, Tuple, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, List, Optional, Tuple, Type, TypeVar, Union, cast
 
 try:
     from guardian.conf import settings as guardian_settings
@@ -173,7 +173,7 @@ class GuardedModel(models.Model):
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
         any_perm: bool = True,
-        checker: Union["ObjectPermissionChecker", None] = None,
+        checker: Optional["ObjectPermissionChecker"] = None,
     ) -> bool:
         """Check if the user has the given permissions to this object.
 
@@ -233,7 +233,7 @@ class GuardedRelatedModel(GuardedModel):
         user: Union[AbstractUser, AnonymousUser],
         perms: Union[str, List[str]],
         any_perm: bool = True,
-        checker: Union["ObjectPermissionChecker", None] = None,
+        checker: Optional["ObjectPermissionChecker"] = None,
     ) -> bool:
         # No guardian means we are not checking perms
         if not has_guardian:

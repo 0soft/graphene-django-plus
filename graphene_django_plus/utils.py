@@ -71,7 +71,7 @@ def _get_input_attrs(object_type):
         if not isinstance(value, (MountedType, UnmountedType)):
             continue
 
-        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):  # type:ignore
+        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):
             value = type(value)(_input_registry[value.of_type])
         elif isinstance(value, ObjectType):
             value = _input_registry[value.of_type]

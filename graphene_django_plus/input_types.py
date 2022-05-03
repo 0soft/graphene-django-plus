@@ -25,7 +25,7 @@ def get_input_field(
     :return: A scalar that can be used as an input field in mutations.
 
     """
-    return convert_django_field_with_choices(field, registry)  # type:ignore
+    return convert_django_field_with_choices(field, registry)
 
 
 @get_input_field.register(models.FileField)
