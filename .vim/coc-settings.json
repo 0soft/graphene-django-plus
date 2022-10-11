@@ -1,0 +1,8 @@
+{
+  "pyright.organizeimports.provider": "isort",
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.pythonPath": ".venv/python3"
+}

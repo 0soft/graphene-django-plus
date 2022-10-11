@@ -3,24 +3,27 @@ import json
 
 from django.test.utils import override_settings
 import graphene
+from graphene_django.registry import get_global_registry
 from graphql_relay import to_global_id
+
 from graphene_django_plus.mutations import ModelCreateMutation
 
 from .base import BaseTestCase
-from .models import (
-    Project,
-    Milestone,
-    Issue,
-    MilestoneComment,
+from .models import Issue, Milestone, MilestoneComment, Project
+from .schema import (
+    IssueType,
+    MilestoneCommentType,
+    ProjectNameOnlyUpdateMutation,
+    ProjectType,
+    ProjectUpdateMutation,
+    project_name_only_registry,
 )
-from .schema import MilestoneCommentType, IssueType, ProjectType
 
 
 class TestTypes(BaseTestCase):
-
     def test_mutation_create(self):
         # project
-        self.assertIsNone(Project.objects.filter(name='FooBar').first())
+        self.assertIsNone(Project.objects.filter(name="FooBar").first())
         r = self.query(
             """
             mutation projectCreate {
@@ -31,19 +34,21 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name='projectCreate',
+            op_name="projectCreate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'projectCreate': {'project': {'name': 'FooBar'}}}},
+            {"data": {"projectCreate": {"project": {"name": "FooBar"}}}},
         )
-        self.assertIsNotNone(Project.objects.filter(name='FooBar').first())
+        self.assertIsNotNone(Project.objects.filter(name="FooBar").first())
 
         # milestone
-        p_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
-        self.assertIsNone(Milestone.objects.filter(name='BarBin').first())
+        p_id = base64.b64encode(
+            "ProjectType:{}".format(
+                self.project.id,
+            ).encode()
+        ).decode()
+        self.assertIsNone(Milestone.objects.filter(name="BarBin").first())
         r = self.query(
             """
             mutation milestoneCreate {
@@ -56,29 +61,32 @@ class TestTypes(BaseTestCase):
                 }
               }
             }
-            """ % (p_id, ),
-            op_name='milestoneCreate',
+            """
+            % (p_id,),
+            op_name="milestoneCreate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneCreate': {
-                    'milestone': {
-                        'name': 'BarBin',
-                        'project': {
-                            'name': 'Test Project'
+            {
+                "data": {
+                    "milestoneCreate": {
+                        "milestone": {
+                            "name": "BarBin",
+                            "project": {"name": "Test Project"},
                         }
                     }
                 }
-            }},
+            },
         )
-        self.assertIsNotNone(Milestone.objects.filter(name='BarBin').first())
+        self.assertIsNotNone(Milestone.objects.filter(name="BarBin").first())
 
     def test_mutation_update(self):
         # project
-        p_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
+        p_id = base64.b64encode(
+            "ProjectType:{}".format(
+                self.project.id,
+            ).encode()
+        ).decode()
         self.assertNotEqual(self.project.name, "XXX")
         r = self.query(
             """
@@ -89,21 +97,24 @@ class TestTypes(BaseTestCase):
                 }
               }
             }
-            """ % (p_id, ),
-            op_name='projectUpdate',
+            """
+            % (p_id,),
+            op_name="projectUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'projectUpdate': {'project': {'name': 'XXX'}}}},
+            {"data": {"projectUpdate": {"project": {"name": "XXX"}}}},
         )
         self.project.refresh_from_db()
         self.assertEqual(self.project.name, "XXX")
 
         # issue (allowed)
         issue = self.allowed_issues[0]
-        i_id = base64.b64encode('IssueType:{}'.format(
-            issue.id,
-        ).encode()).decode()
+        i_id = base64.b64encode(
+            "IssueType:{}".format(
+                issue.id,
+            ).encode()
+        ).decode()
         self.assertNotEqual(issue.name, "YYY")
         r = self.query(
             """
@@ -114,21 +125,24 @@ class TestTypes(BaseTestCase):
                 }
               }
             }
-            """ % (i_id, ),
-            op_name='issueUpdate',
+            """
+            % (i_id,),
+            op_name="issueUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'issueUpdate': {'issue': {'name': 'YYY'}}}},
+            {"data": {"issueUpdate": {"issue": {"name": "YYY"}}}},
         )
         issue.refresh_from_db()
         self.assertEqual(issue.name, "YYY")
 
         # issue (not allowed)
         issue = self.unallowed_issues[0]
-        i_id = base64.b64encode('IssueType:{}'.format(
-            issue.id,
-        ).encode()).decode()
+        i_id = base64.b64encode(
+            "IssueType:{}".format(
+                issue.id,
+            ).encode()
+        ).decode()
         r = self.query(
             """
             mutation issueUpdate {
@@ -136,18 +150,40 @@ class TestTypes(BaseTestCase):
                 issue {
                   name
                 }
+                errors {
+                  field
+                  message
+                }
               }
             }
-            """ % (i_id, ),
-            op_name='issueUpdate',
+            """
+            % (i_id,),
+            op_name="issueUpdate",
         )
-        self.assertResponseHasErrors(r)
+        self.assertEqual(
+            json.loads(r.content),
+            {
+                "data": {
+                    "issueUpdate": {
+                        "errors": [
+                            {
+                                "field": None,
+                                "message": "You do not have permission " "to perform this action",
+                            }
+                        ],
+                        "issue": None,
+                    }
+                }
+            },
+        )
 
     def test_mutation_delete(self):
         # project
-        p_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
+        p_id = base64.b64encode(
+            "ProjectType:{}".format(
+                self.project.id,
+            ).encode()
+        ).decode()
         r = self.query(
             """
             mutation projectDelete {
@@ -157,20 +193,23 @@ class TestTypes(BaseTestCase):
                 }
               }
             }
-            """ % (p_id, ),
-            op_name='projectDelete',
+            """
+            % (p_id,),
+            op_name="projectDelete",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'projectDelete': {'project': {'name': 'Test Project'}}}},
+            {"data": {"projectDelete": {"project": {"name": "Test Project"}}}},
         )
         self.assertIsNone(Project.objects.filter(id=self.project.id).first())
 
         # issue (allowed)
         issue = self.allowed_issues[0]
-        i_id = base64.b64encode('IssueType:{}'.format(
-            issue.id,
-        ).encode()).decode()
+        i_id = base64.b64encode(
+            "IssueType:{}".format(
+                issue.id,
+            ).encode()
+        ).decode()
         r = self.query(
             """
             mutation issueDelete {
@@ -180,20 +219,23 @@ class TestTypes(BaseTestCase):
                 }
               }
             }
-            """ % (i_id, ),
-            op_name='issueDelete',
+            """
+            % (i_id,),
+            op_name="issueDelete",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'issueDelete': {'issue': {'name': issue.name}}}},
+            {"data": {"issueDelete": {"issue": {"name": issue.name}}}},
         )
         self.assertIsNone(Issue.objects.filter(id=issue.id).first())
 
         # issue (not allowed)
         issue = self.unallowed_issues[0]
-        i_id = base64.b64encode('IssueType:{}'.format(
-            issue.id,
-        ).encode()).decode()
+        i_id = base64.b64encode(
+            "IssueType:{}".format(
+                issue.id,
+            ).encode()
+        ).decode()
         r = self.query(
             """
             mutation issueDelete {
@@ -201,12 +243,94 @@ class TestTypes(BaseTestCase):
                 issue {
                   name
                 }
+                errors {
+                  field
+                  message
+                }
               }
             }
-            """ % (i_id, ),
-            op_name='issueDelete',
+            """
+            % (i_id,),
+            op_name="issueDelete",
         )
-        self.assertResponseHasErrors(r)
+        self.assertEqual(
+            json.loads(r.content),
+            {
+                "data": {
+                    "issueDelete": {
+                        "errors": [
+                            {
+                                "field": None,
+                                "message": "You do not have permission " "to perform this action",
+                            }
+                        ],
+                        "issue": None,
+                    }
+                }
+            },
+        )
+
+
+class TestMutationRegistry(BaseTestCase):
+    """Tests with ObjectTypes and Mutations using a different registry than the global registry."""
+
+    def test_mutation_meta_registry(self):
+        """Test having registry information stored in mutation meta."""
+        self.assertEqual(ProjectUpdateMutation._meta.registry, get_global_registry())
+        self.assertNotEqual(ProjectUpdateMutation._meta.registry, project_name_only_registry)
+
+        self.assertNotEqual(ProjectNameOnlyUpdateMutation._meta.registry, get_global_registry())
+        self.assertEqual(ProjectNameOnlyUpdateMutation._meta.registry, project_name_only_registry)
+
+    def test_mutation_with_non_global_registry(self):
+        """Test that update mutation using non global registry is working."""
+        # project
+        p_id = to_global_id("ProjectNameOnlyType", self.project.id)
+        self.assertNotEqual(self.project.name, "XXX")
+        r = self.query(
+            """
+            mutation projectUpdateName {
+              projectUpdateName (input: {id: "%s" name: "XXX"}) {
+                project {
+                  name
+                }
+              }
+            }
+            """
+            % (p_id,)
+        )
+        self.assertEqual(
+            json.loads(r.content),
+            {"data": {"projectUpdateName": {"project": {"name": "XXX"}}}},
+        )
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.name, "XXX")
+
+    def test_mutation_name_only(self):
+        """Test that update mutation using non global registry is using correct model type."""
+
+        # project
+        p_id = to_global_id("ProjectNameOnlyType", self.project.id)
+        self.assertNotEqual(self.project.name, "XXX")
+        r = self.query(
+            """
+            mutation projectUpdateName {
+              projectUpdateName (input: {id: "%s" name: "XXX"}) {
+                project {
+                  name
+                  dueDate
+                }
+              }
+            }
+            """
+            % (p_id,)
+        )
+        self.assertEqual(
+            json.loads(r.content)["errors"][0]["message"],
+            'Cannot query field "dueDate" on type "ProjectNameOnlyType".',
+        )
+        self.project.refresh_from_db()
+        self.assertNotEqual(self.project.name, "XXX")
 
 
 class TestMutationRelatedObjects(BaseTestCase):
@@ -214,15 +338,19 @@ class TestMutationRelatedObjects(BaseTestCase):
 
     def test_create_milestone_issues(self):
         """Test that a milestone can be created with a list of issues."""
-        milestone = 'release_1A'
+        milestone = "release_1A"
         self.assertIsNone(Milestone.objects.filter(name=milestone).first())
 
-        project_id = base64.b64encode('ProjectType:{}'.format(
-            self.project.id,
-        ).encode()).decode()
-        issue_id = base64.b64encode('IssueType:{}'.format(
-            self.issues[0].id,
-        ).encode()).decode()
+        project_id = base64.b64encode(
+            "ProjectType:{}".format(
+                self.project.id,
+            ).encode()
+        ).decode()
+        issue_id = base64.b64encode(
+            "IssueType:{}".format(
+                self.issues[0].id,
+            ).encode()
+        ).decode()
 
         r = self.query(
             """
@@ -244,41 +372,47 @@ class TestMutationRelatedObjects(BaseTestCase):
                 }
               }
             }
-            """ % (milestone, project_id, issue_id),
-            op_name='milestoneCreate',
+            """
+            % (milestone, project_id, issue_id),
+            op_name="milestoneCreate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneCreate': {
-                    'milestone': {
-                        'name': 'release_1A',
-                        'issues': {
-                            'edges': [{
-                                'node': {
-                                    'name': 'Issue 1'
-                                },
-                            }]
+            {
+                "data": {
+                    "milestoneCreate": {
+                        "milestone": {
+                            "name": "release_1A",
+                            "issues": {
+                                "edges": [
+                                    {
+                                        "node": {"name": "Issue 1"},
+                                    }
+                                ]
+                            },
                         }
                     }
                 }
-            }
-            }
+            },
         )
         self.assertIsNotNone(Milestone.objects.filter(name=milestone).first())
 
     def test_update_milestone_issues(self):
         """Test that issues can be updated as a part of milestone update."""
-        milestone = Milestone.objects.create(name='release-A', project=self.project)
+        milestone = Milestone.objects.create(name="release-A", project=self.project)
         milestone.issues.set(self.issues)
-        m_id = base64.b64encode('MilestoneType:{}'.format(
-            milestone.id,
-        ).encode()).decode()
+        m_id = base64.b64encode(
+            "MilestoneType:{}".format(
+                milestone.id,
+            ).encode()
+        ).decode()
 
         # Now update it to just having a single issue.
-        issue_id = base64.b64encode('IssueType:{}'.format(
-            self.issues[0].id,
-        ).encode()).decode()
+        issue_id = base64.b64encode(
+            "IssueType:{}".format(
+                self.issues[0].id,
+            ).encode()
+        ).decode()
         r = self.query(
             """
             mutation milestoneUpdate {
@@ -298,26 +432,28 @@ class TestMutationRelatedObjects(BaseTestCase):
                 }
               }
             }
-            """ % (m_id, issue_id),
-            op_name='milestoneUpdate',
+            """
+            % (m_id, issue_id),
+            op_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneUpdate': {
-                    'milestone': {
-                        'name': 'release-A',
-                        'issues': {
-                            'edges': [{
-                                'node': {
-                                    'name': 'Issue 1'
-                                },
-                            }]
+            {
+                "data": {
+                    "milestoneUpdate": {
+                        "milestone": {
+                            "name": "release-A",
+                            "issues": {
+                                "edges": [
+                                    {
+                                        "node": {"name": "Issue 1"},
+                                    }
+                                ]
+                            },
                         }
                     }
                 }
-            }
-            }
+            },
         )
 
         # If we update this once again without "issues" them should not be touched
@@ -339,34 +475,39 @@ class TestMutationRelatedObjects(BaseTestCase):
                 }
               }
             }
-            """ % (m_id, ),
-            op_name='milestoneUpdate',
+            """
+            % (m_id,),
+            op_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneUpdate': {
-                    'milestone': {
-                        'name': 'release-A',
-                        'issues': {
-                            'edges': [{
-                                'node': {
-                                    'name': 'Issue 1'
-                                },
-                            }]
+            {
+                "data": {
+                    "milestoneUpdate": {
+                        "milestone": {
+                            "name": "release-A",
+                            "issues": {
+                                "edges": [
+                                    {
+                                        "node": {"name": "Issue 1"},
+                                    }
+                                ]
+                            },
                         }
                     }
                 }
-            }}
+            },
         )
 
     def test_remove_all_milestone_issues(self):
         """Test that all issues can be removed from a milestone."""
-        milestone = Milestone.objects.create(name='release-A', project=self.project)
+        milestone = Milestone.objects.create(name="release-A", project=self.project)
         milestone.issues.set(self.issues)
-        m_id = base64.b64encode('MilestoneType:{}'.format(
-            milestone.id,
-        ).encode()).decode()
+        m_id = base64.b64encode(
+            "MilestoneType:{}".format(
+                milestone.id,
+            ).encode()
+        ).decode()
 
         r = self.query(
             """
@@ -387,33 +528,28 @@ class TestMutationRelatedObjects(BaseTestCase):
                 }
               }
             }
-            """ % m_id,
-            op_name='milestoneUpdate',
+            """
+            % m_id,
+            op_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneUpdate': {
-                    'milestone': {
-                        'name': 'release-A',
-                        'issues': {
-                            'edges': []
-                        }
-                    }
+            {
+                "data": {
+                    "milestoneUpdate": {"milestone": {"name": "release-A", "issues": {"edges": []}}}
                 }
-            }
-            }
+            },
         )
 
 
 class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
     """Tests for creating and updating reverse side of FK and M2M relationships."""
 
-    @override_settings(GRAPHENE_DJANGO_PLUS={'MUTATIONS_INCLUDE_REVERSE_RELATIONS': False})
+    @override_settings(GRAPHENE_DJANGO_PLUS={"MUTATIONS_INCLUDE_REVERSE_RELATIONS": False})
     def test_create_milestone_issues_turned_off_related_setting(self):
         """Test that a milestone can be created with a list of issues."""
 
-        milestone = 'release_1A'
+        milestone = "release_1A"
         self.assertFalse(Milestone.objects.filter(name=milestone).exists())
 
         project_id = to_global_id(ProjectType.__name__, self.project.id)
@@ -432,28 +568,32 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             mutation=Mutation,
         )
         query = """
-            mutation milestoneCreate {
-              milestoneCreate (input: {
-                name: "%s",
-                project: "%s",
-                issues: ["%s"]
-              }) {
-                milestone {
+            mutation milestoneCreate {{
+              milestoneCreate (input: {{
+                name: "{}",
+                project: "{}",
+                issues: ["{}"]
+              }}) {{
+                milestone {{
                   name
-                  issues {
-                    edges {
-                      node {
+                  issues {{
+                    edges {{
+                      node {{
                         name
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """ % (milestone, project_id, issue_id)
+                      }}
+                    }}
+                  }}
+                }}
+              }}
+            }}
+            """.format(
+            milestone,
+            project_id,
+            issue_id,
+        )
         result = schema.execute(query)
         self.assertFalse(Milestone.objects.filter(name=milestone).exists())
-        self.assertTrue('Unknown field.' in result.errors[0].message)
+        self.assertTrue("Unknown field." in result.errors[0].message)
 
     def test_create_milestone_issues_with_comments_without_related_name(self):
         comment = MilestoneComment.objects.create(
@@ -461,7 +601,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             milestone=self.milestone_1,
         )
 
-        milestone = 'release_1A'
+        milestone = "release_1A"
         self.assertFalse(Milestone.objects.filter(name=milestone).exists())
 
         project_id = to_global_id(ProjectType.__name__, self.project.id)
@@ -496,32 +636,34 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
                 }
               }
             }
-            """ % (milestone, project_id, issue_id, comment_id),
-            op_name='milestoneCreate',
+            """
+            % (milestone, project_id, issue_id, comment_id),
+            op_name="milestoneCreate",
         )
         self.assertTrue(Milestone.objects.filter(name=milestone).exists())
         self.assertEqual(
             json.loads(r.content),
-            {'data': {
-                'milestoneCreate': {
-                    'milestone': {
-                        'name': 'release_1A',
-                        'issues': {
-                            'edges': [{
-                                'node': {
-                                    'name': 'Issue 1'
-                                },
-                            }]
-                        },
-                        'milestonecommentSet': {
-                            'edges': [{
-                                'node': {
-                                    'text': 'Milestone Comment'
-                                },
-                            }]
-                        },
+            {
+                "data": {
+                    "milestoneCreate": {
+                        "milestone": {
+                            "name": "release_1A",
+                            "issues": {
+                                "edges": [
+                                    {
+                                        "node": {"name": "Issue 1"},
+                                    }
+                                ]
+                            },
+                            "milestonecommentSet": {
+                                "edges": [
+                                    {
+                                        "node": {"text": "Milestone Comment"},
+                                    }
+                                ]
+                            },
+                        }
                     }
                 }
-            }
-            }
+            },
         )

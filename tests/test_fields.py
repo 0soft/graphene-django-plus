@@ -5,7 +5,6 @@ from .base import BaseTestCase
 
 
 class TestModels(BaseTestCase):
-
     def test_orderby(self):
         # milestones
         r = self.query(
@@ -20,17 +19,17 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='milestones'
+            op_name="milestones",
         )
-        d = json.loads(r.content),
-        edges = d[0]['data']['milestones']['edges']
+        d = (json.loads(r.content),)
+        edges = d[0]["data"]["milestones"]["edges"]
         self.assertEqual(
-            edges[0]['node']['name'],
-            'Milestone 1',
+            edges[0]["node"]["name"],
+            "Milestone 1",
         )
         self.assertEqual(
-            edges[1]['node']['name'],
-            'Milestone 2',
+            edges[1]["node"]["name"],
+            "Milestone 2",
         )
 
         # milestones reversed
@@ -46,17 +45,17 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='milestones'
+            op_name="milestones",
         )
-        d = json.loads(r.content),
-        edges = d[0]['data']['milestones']['edges']
+        d = (json.loads(r.content),)
+        edges = d[0]["data"]["milestones"]["edges"]
         self.assertEqual(
-            edges[0]['node']['name'],
-            'Milestone 2',
+            edges[0]["node"]["name"],
+            "Milestone 2",
         )
         self.assertEqual(
-            edges[1]['node']['name'],
-            'Milestone 1',
+            edges[1]["node"]["name"],
+            "Milestone 1",
         )
 
     def test_total_count(self):
@@ -69,11 +68,11 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='projects'
+            op_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'projects': {'totalCount': 1}}},
+            {"data": {"projects": {"totalCount": 1}}},
         )
 
         # milestones
@@ -85,11 +84,11 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='milestones'
+            op_name="milestones",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'milestones': {'totalCount': 2}}},
+            {"data": {"milestones": {"totalCount": 2}}},
         )
 
         # issues
@@ -101,14 +100,14 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='issues'
+            op_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'issues': {'totalCount': 2}}},
+            {"data": {"issues": {"totalCount": 2}}},
         )
 
-    @mock.patch('graphene_django_plus.types.gql_optimizer', None)
+    @mock.patch("graphene_django_plus.types.gql_optimizer", None)
     def test_total_count_no_gql_optimizer(self):
         # projects
         r = self.query(
@@ -119,11 +118,11 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='projects'
+            op_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'projects': {'totalCount': 1}}},
+            {"data": {"projects": {"totalCount": 1}}},
         )
 
         # milestones
@@ -135,11 +134,11 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='milestones'
+            op_name="milestones",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'milestones': {'totalCount': 2}}},
+            {"data": {"milestones": {"totalCount": 2}}},
         )
 
         # issues
@@ -151,9 +150,9 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name='issues'
+            op_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
-            {'data': {'issues': {'totalCount': 2}}},
+            {"data": {"issues": {"totalCount": 2}}},
         )

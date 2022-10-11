@@ -1,4 +1,6 @@
+import contextlib
 import json
+
 from graphene_django.views import GraphQLView as _GraphQLView
 
 
@@ -39,13 +41,11 @@ def _obj_set(obj, path, value):
         obj[current_path] = value
 
     if current_value is None:
-        try:
+        with contextlib.suppress(IndexError):
             if isinstance(path[1], int):
                 obj[current_path] = []
             else:
                 obj[current_path] = {}
-        except IndexError:
-            pass
 
     return _obj_set(obj[current_path], path[1:], value)
 
@@ -55,6 +55,7 @@ class GraphQLView(_GraphQLView):
 
     Based on:
         https://github.com/mirumee/saleor/blob/master/saleor/graphql/views.py
+
     """
 
     @staticmethod
@@ -65,9 +66,9 @@ class GraphQLView(_GraphQLView):
         )
 
         content_type = _GraphQLView.get_content_type(request)
-        if content_type == 'multipart/form-data':
-            operations = json.loads(data.get('operations', "{}"))
-            files_map = json.loads(data.get('map', '{}'))
+        if content_type == "multipart/form-data":
+            operations = json.loads(data.get("operations", "{}"))
+            files_map = json.loads(data.get("map", "{}"))
             for k, v in files_map.items():
                 for f in v:
                     _obj_set(operations, f, k)

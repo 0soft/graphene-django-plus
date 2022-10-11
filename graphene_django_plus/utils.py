@@ -1,7 +1,16 @@
-import itertools
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 
+import itertools
+from typing import List, Optional, Type
+
+from django.db import models
+from django.db.models.fields.reverse_related import ManyToOneRel
 import graphene
 from graphene.types.mountedtype import MountedType
+from graphene.types.objecttype import ObjectType
 from graphene.types.structures import Structure
 from graphene.types.unmountedtype import UnmountedType
 from graphene.types.utils import yank_fields_from_attrs
@@ -12,7 +21,7 @@ from graphql_relay import from_global_id
 
 _registry = get_global_registry()
 _extra_register = {}
-_input_registry = dict()
+_input_registry = {}
 
 
 def _resolve_nodes(ids, graphene_type=None):
@@ -30,11 +39,8 @@ def _resolve_nodes(ids, graphene_type=None):
             invalid_ids.append(graphql_id)
             continue
 
-        if used_type:
-            if str(used_type) != node_type:
-                raise AssertionError(
-                    "Must receive a {} id.".format(str(used_type))
-                )
+        if used_type and str(used_type) != node_type:  # pragma: nocover
+            raise AssertionError(f"Must receive a {str(used_type)} id.")
 
         used_type = node_type
         pks.append(_id)
@@ -49,13 +55,13 @@ def _resolve_nodes(ids, graphene_type=None):
     return used_type, pks
 
 
-def _resolve_graphene_type(type_name):
-    for _, _type in itertools.chain(_extra_register.items(),
-                                    _registry._registry.items()):
+def _resolve_graphene_type(type_name, registry=None):
+    registry = registry or _registry
+    for _, _type in itertools.chain(_extra_register.items(), registry._registry.items()):
         if _type._meta.name == type_name:
             return _type
     else:  # pragma: no cover
-        raise AssertionError("Could not resolve the type {}".format(type_name))
+        raise AssertionError(f"Could not resolve the type {type_name}")
 
 
 def _get_input_attrs(object_type):
@@ -65,9 +71,9 @@ def _get_input_attrs(object_type):
         if not isinstance(value, (MountedType, UnmountedType)):
             continue
 
-        if isinstance(value, Structure) and issubclass(value.of_type, graphene.ObjectType):
+        if isinstance(value, Structure) and issubclass(value.of_type, ObjectType):
             value = type(value)(_input_registry[value.of_type])
-        elif isinstance(value, graphene.ObjectType):
+        elif isinstance(value, ObjectType):
             value = _input_registry[value.of_type]
 
         new[attr] = value
@@ -75,23 +81,29 @@ def _get_input_attrs(object_type):
     return yank_fields_from_attrs(new, _as=graphene.InputField)
 
 
-def register_type(graphene_type):
+def register_type(graphene_type, name: Optional[str] = None):
     """Register an extra type to be resolved in mutations."""
-    assert issubclass(graphene_type, DjangoObjectType)
-    _extra_register[graphene_type._meta.model] = graphene_type
+    assert issubclass(graphene_type, graphene.ObjectType)
+    if name is None:
+        name = graphene_type._meta.name
+    _extra_register[name] = graphene_type
     return graphene_type
 
 
-def get_node(id, graphene_type=None):
+def get_node(info, id_: str, graphene_type: Optional[ObjectType] = None, registry=None):
     """Get a node given the relay id."""
-    node_type, _id = from_global_id(id)
+    node_type, _id = from_global_id(id_)
     if not graphene_type:
-        graphene_type = _resolve_graphene_type(node_type)
+        graphene_type = _resolve_graphene_type(node_type, registry)
+    assert graphene_type is not None
 
-    return graphene_type._meta.model.objects.get(pk=_id)
+    if issubclass(graphene_type, DjangoObjectType):
+        return graphene_type._meta.model.objects.get(pk=_id)
+    else:
+        return graphene_type.get_node(info, _id)
 
 
-def get_nodes(ids, graphene_type=None):
+def get_nodes(info, ids: List[str], graphene_type: Optional[ObjectType] = None, registry=None):
     """Get a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
@@ -99,48 +111,76 @@ def get_nodes(ids, graphene_type=None):
     the Graphene's registry.
 
     Raises an error if not all IDs are of the same type.
+
     """
+    if not ids:  # pragma: nocover
+        raise ValueError("ids list cannot be empty")
+
     nodes_type, pks = _resolve_nodes(ids, graphene_type)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if nodes_type and not graphene_type:
-        graphene_type = _resolve_graphene_type(nodes_type)
+        graphene_type = _resolve_graphene_type(nodes_type, registry)
+    assert graphene_type is not None
 
-    nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
-    nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
+    if issubclass(graphene_type, DjangoObjectType):
+        nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
+        nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
-    if not nodes:  # pragma: no cover
-        raise GraphQLError(
-            "Could not resolve to a node with the id list of '{}'.".format(
-                ids,
-            ),
-        )
-
-    nodes_pk_list = [str(node.pk) for node in nodes]
-    for pk in pks:
-        if pk not in nodes_pk_list:  # pragma: no cover
-            raise AssertionError(
+        diff = set(pks) - {str(n.pk) for n in nodes}
+        if diff:
+            raise GraphQLError(
                 "There is no node of type {} with pk {}".format(
                     graphene_type,
-                    pk,
+                    ", ".join(diff),
                 )
             )
+    else:
+        nodes = [graphene_type.get_node(info, id_) for id_ in pks]
 
     return nodes
 
 
 def get_inputtype(name, object_type):
-    """Get an input type based on the object type"""
+    """Get an input type based on the object type."""
     if object_type in _input_registry:
         return _input_registry[object_type]
 
     inputtype = type(
         name,
-        (graphene.InputObjectType, ),
+        (graphene.InputObjectType,),
         _get_input_attrs(object_type),
     )
 
     _input_registry[object_type] = inputtype
     return inputtype
+
+
+def get_model_fields(model: Type[models.Model]):
+    fields = [
+        (field.name, field)
+        for field in sorted(model._meta.fields + model._meta.many_to_many)  # type:ignore
+    ]
+    fields.extend(
+        [
+            (field.related_name or field.name + "_set", field)
+            for field in sorted(
+                model._meta.related_objects,
+                key=lambda field: field.name,
+            )
+            if not isinstance(field, ManyToOneRel) or field.remote_field.null
+        ],
+    )
+    return fields
+
+
+def update_dict_nested(d: dict, u: dict) -> dict:
+    for k, v in u.items():
+        if isinstance(v, Mapping):
+            d[k] = update_dict_nested(d.get(k, {}), v)  # type:ignore
+        else:
+            d[k] = v
+
+    return d
