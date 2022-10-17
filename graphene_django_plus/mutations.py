@@ -122,17 +122,20 @@ def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
 
         if required_fields is not None:
             required = name in required_fields
-            f.kwargs["required"] = required
+            if hasattr(f, 'kwargs'):
+                f.kwargs["required"] = required
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
                 required = not field.null
             else:
                 required = not field.blank and field.default is NOT_PROVIDED
 
-            f.kwargs["required"] = required
+            if hasattr(f, 'kwargs'):
+                f.kwargs["required"] = required
 
         s = schema_for_field(field, name, registry)
-        required = f.kwargs["required"]
+        if hasattr(f, 'kwargs'):
+            required = f.kwargs["required"]
         s["validation"]["required"] = required
 
         ret[name] = {

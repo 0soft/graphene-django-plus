@@ -36,7 +36,7 @@ class TestQueries(BaseTestCase):
               }
             }
             """,
-            op_name="objectschema",
+            operation_name="objectschema",
         )
         d = json.loads(r.content)
         self.assertEqual(
@@ -183,7 +183,7 @@ class TestQueries(BaseTestCase):
               }
             }
             """,
-            op_name="objectschema",
+            operation_name="objectschema",
         )
         d = json.loads(r.content)
         self.assertEqual(d, {"data": {"gqlObjectSchema": None}})
@@ -221,7 +221,7 @@ class TestQueries(BaseTestCase):
               }
             }
             """,
-            op_name="objectschema",
+            operation_name="objectschema",
         )
         d = json.loads(r.content)
         self.assertEqual(

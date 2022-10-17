@@ -19,7 +19,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="milestones",
+            operation_name="milestones",
         )
         d = (json.loads(r.content),)
         edges = d[0]["data"]["milestones"]["edges"]
@@ -45,7 +45,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="milestones",
+            operation_name="milestones",
         )
         d = (json.loads(r.content),)
         edges = d[0]["data"]["milestones"]["edges"]
@@ -68,7 +68,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="projects",
+            operation_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -84,7 +84,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="milestones",
+            operation_name="milestones",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -100,7 +100,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="issues",
+            operation_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -118,7 +118,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="projects",
+            operation_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -134,7 +134,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="milestones",
+            operation_name="milestones",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -150,7 +150,7 @@ class TestModels(BaseTestCase):
                 }
             }
             """,
-            op_name="issues",
+            operation_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
