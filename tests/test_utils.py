@@ -1,7 +1,7 @@
 import base64
 
 from graphene_django.registry import Registry
-from graphql.error.base import GraphQLError
+from graphql import GraphQLError
 
 from graphene_django_plus.utils import get_nodes
 
