@@ -3,6 +3,7 @@ import json
 
 from django.test.utils import override_settings
 import graphene
+from graphene import relay
 from graphene_django.registry import get_global_registry
 from graphql_relay import to_global_id
 
@@ -13,6 +14,7 @@ from .models import Issue, Milestone, MilestoneComment, Project
 from .schema import (
     IssueType,
     MilestoneCommentType,
+    MilestoneType,
     ProjectNameOnlyUpdateMutation,
     ProjectType,
     ProjectUpdateMutation,
@@ -34,7 +36,7 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name="projectCreate",
+            operation_name="projectCreate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -63,7 +65,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="milestoneCreate",
+            operation_name="milestoneCreate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -99,7 +101,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="projectUpdate",
+            operation_name="projectUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -127,7 +129,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (i_id,),
-            op_name="issueUpdate",
+            operation_name="issueUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -158,7 +160,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (i_id,),
-            op_name="issueUpdate",
+            operation_name="issueUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -195,7 +197,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="projectDelete",
+            operation_name="projectDelete",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -221,7 +223,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (i_id,),
-            op_name="issueDelete",
+            operation_name="issueDelete",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -251,7 +253,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (i_id,),
-            op_name="issueDelete",
+            operation_name="issueDelete",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -327,7 +329,7 @@ class TestMutationRegistry(BaseTestCase):
         )
         self.assertEqual(
             json.loads(r.content)["errors"][0]["message"],
-            'Cannot query field "dueDate" on type "ProjectNameOnlyType".',
+            "Cannot query field 'dueDate' on type 'ProjectNameOnlyType'.",
         )
         self.project.refresh_from_db()
         self.assertNotEqual(self.project.name, "XXX")
@@ -374,7 +376,7 @@ class TestMutationRelatedObjects(BaseTestCase):
             }
             """
             % (milestone, project_id, issue_id),
-            op_name="milestoneCreate",
+            operation_name="milestoneCreate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -434,7 +436,7 @@ class TestMutationRelatedObjects(BaseTestCase):
             }
             """
             % (m_id, issue_id),
-            op_name="milestoneUpdate",
+            operation_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -477,7 +479,7 @@ class TestMutationRelatedObjects(BaseTestCase):
             }
             """
             % (m_id,),
-            op_name="milestoneUpdate",
+            operation_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -530,7 +532,7 @@ class TestMutationRelatedObjects(BaseTestCase):
             }
             """
             % m_id,
-            op_name="milestoneUpdate",
+            operation_name="milestoneUpdate",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -561,10 +563,14 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             class Meta:
                 model = Milestone
 
+        class Query(graphene.ObjectType):
+            milestone = relay.Node.Field(MilestoneType)
+
         class Mutation(graphene.ObjectType):
             milestone_create = MilestoneCreateMutation.Field()
 
         schema = graphene.Schema(
+            query=Query,
             mutation=Mutation,
         )
         query = """
@@ -592,8 +598,9 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             issue_id,
         )
         result = schema.execute(query)
+        print(result)
         self.assertFalse(Milestone.objects.filter(name=milestone).exists())
-        self.assertTrue("Unknown field." in result.errors[0].message)
+        self.assertTrue("Field 'issues' is not defined" in result.errors[0].message)
 
     def test_create_milestone_issues_with_comments_without_related_name(self):
         comment = MilestoneComment.objects.create(
@@ -638,7 +645,7 @@ class TestMutationRelatedObjectsWithOverrideSettings(BaseTestCase):
             }
             """
             % (milestone, project_id, issue_id, comment_id),
-            op_name="milestoneCreate",
+            operation_name="milestoneCreate",
         )
         self.assertTrue(Milestone.objects.filter(name=milestone).exists())
         self.assertEqual(

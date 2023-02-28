@@ -6,6 +6,7 @@ for cls in [QuerySet, BaseManager, models.ForeignKey]:
     cls.__class_getitem__ = classmethod(lambda cls, *args, **kwargs: cls)  # noqa
 
 
+DEBUG = True
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",

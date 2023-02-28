@@ -28,6 +28,7 @@ from graphene.types.mutation import MutationOptions
 from graphene.types.objecttype import ObjectType
 from graphene.types.utils import yank_fields_from_attrs
 from graphene.utils.str_converters import to_camel_case, to_snake_case
+from graphene_django.converter import BlankValueField
 from graphene_django.registry import Registry, get_global_registry
 from graphql.error import GraphQLError
 
@@ -122,17 +123,16 @@ def _get_fields(model, only_fields, exclude_fields, required_fields, registry):
 
         if required_fields is not None:
             required = name in required_fields
-            f.kwargs["required"] = required
         else:
             if isinstance(field, (ManyToOneRel, ManyToManyRel)):
                 required = not field.null
             else:
                 required = not field.blank and field.default is NOT_PROVIDED
 
+        if not isinstance(f, BlankValueField):
             f.kwargs["required"] = required
 
         s = schema_for_field(field, name, registry)
-        required = f.kwargs["required"]
         s["validation"]["required"] = required
 
         ret[name] = {

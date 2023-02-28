@@ -43,7 +43,7 @@ repos:
         args: ["--in-place", "--remove-all-unused-imports"]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
         name: isort (python)
@@ -60,7 +60,7 @@ repos:
       - id: black
         args: ["--config", "pyproject.toml"]
 
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
       - id: flake8

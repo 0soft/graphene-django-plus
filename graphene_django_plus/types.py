@@ -10,12 +10,12 @@ from django.db.models.fields import NOT_PROVIDED
 from django.db.models.fields.reverse_related import ManyToManyRel, ManyToOneRel
 from django.http import HttpRequest as DJHttpRequest
 import graphene
+from graphene.types import ResolveInfo
 from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
 from graphene_django.converter import get_choices
 from graphene_django.registry import get_global_registry
 from graphene_django.types import DjangoObjectTypeOptions
-from graphql.execution.base import ResolveInfo
 
 try:
     import graphene_django_optimizer as gql_optimizer
@@ -410,7 +410,7 @@ class ModelType(_BaseDjangoObjectType, Generic[_T]):
                 with_superuser=cls._meta.object_permissions_with_superuser,
             )
 
-        ret = super().get_queryset(qs, info)
+        ret = qs
         if gql_optimizer is not None:
             ret = gql_optimizer.query(ret, info)
             prl = {

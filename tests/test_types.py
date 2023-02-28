@@ -38,7 +38,7 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name="projects",
+            operation_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -97,7 +97,7 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name="issues",
+            operation_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -158,7 +158,7 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name="projects",
+            operation_name="projects",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -217,7 +217,7 @@ class TestTypes(BaseTestCase):
               }
             }
             """,
-            op_name="issues",
+            operation_name="issues",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -265,7 +265,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="project",
+            operation_name="project",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -287,7 +287,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="issue",
+            operation_name="issue",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -315,7 +315,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="issue",
+            operation_name="issue",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -349,7 +349,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="issue",
+            operation_name="issue",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -373,7 +373,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="project",
+            operation_name="project",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -395,7 +395,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="issue",
+            operation_name="issue",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -423,7 +423,7 @@ class TestTypes(BaseTestCase):
             }
             """
             % (p_id,),
-            op_name="issue",
+            operation_name="issue",
         )
         self.assertEqual(
             json.loads(r.content),
@@ -462,7 +462,7 @@ class TestTypes(BaseTestCase):
                 }
                 """
                 % (p_id,),
-                op_name="issue",
+                operation_name="issue",
             )
             self.assertEqual(
                 json.loads(r.content),
@@ -500,5 +500,5 @@ class TestTypes(BaseTestCase):
         )
         self.assertEqual(
             json.loads(r.content)["errors"][0]["message"],
-            'Cannot query field "cost" on type "ProjectNameOnlyType".',
+            "Cannot query field 'cost' on type 'ProjectNameOnlyType'.",
         )
