@@ -31,10 +31,10 @@ jobs:
           - 4.1.*
           - 4.2.*
         python-version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
