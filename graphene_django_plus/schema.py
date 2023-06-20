@@ -2,13 +2,7 @@ import functools
 
 from django.db import models
 import graphene
-from graphene_django.compat import (
-    ArrayField,
-    HStoreField,
-    JSONField,
-    PGJSONField,
-    RangeField,
-)
+from graphene_django.compat import ArrayField, HStoreField, RangeField
 from graphene_django.registry import get_global_registry
 
 _registry = get_global_registry()
@@ -209,8 +203,7 @@ def get_field_schema_array(field, registry=None):
     return d
 
 
-@get_field_schema.register(PGJSONField)
-@get_field_schema.register(JSONField)
+@get_field_schema.register(models.JSONField)
 @get_field_schema.register(HStoreField)
 def get_field_schema_pg(field, registry=None):
     return {
